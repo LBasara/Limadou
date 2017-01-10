@@ -1,0 +1,2 @@
+/home/william/aiglon/geant4/HEPDSW/build/CMakeFiles/hepdsw_exe.dir
+/home/william/aiglon/geant4/HEPDSW/build/CMakeFiles/hepdsw_lib.dir

@@ -1,0 +1,7 @@
+# Sets some default verbose
+#G4verbose
+/control/verbose 2
+/run/verbose 2
+/event/verbose 3
+/tracking/verbose 2
+

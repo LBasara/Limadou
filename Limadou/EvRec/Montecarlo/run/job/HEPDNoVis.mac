@@ -1,0 +1,52 @@
+#
+/control/verbose 2
+/run/verbose 1
+#
+/hepd/setWorldSize 55 75 150 cm
+
+/hepd/ActivateSatellite true
+/hepd/SatelliteConfiguration Config1
+/hepd/Satellite/BlanketMaterialConfiguration mylar
+/hepd/Satellite/WallMaterialConfiguration Aluminium
+
+/hepd/ActivateHEPDBox true
+/hepd/HEPDBoxConfiguration Config4
+/hepd/HEPDBox/BlanketMaterialConfiguration mylar
+/hepd/HEPDBox/WallTwoMaterialConfiguration Aluminium HCAluminium
+
+/hepd/ActivateTracker true
+/hepd/TrackerConfiguration Config4
+/hepd/Tracker/SiliconMaterialConfiguration Silicon
+/hepd/Tracker/KaptonMaterialConfiguration Kapton
+/hepd/Tracker/CarbonFiberMaterialConfiguration CarbonFiber
+
+/hepd/ActivateCalo true
+/hepd/CaloConfiguration Config6
+/hepd/Calorimeter/CalorimeterTwoMaterialConfiguration Scintillator LYSO
+/hepd/Calorimeter/VetoMaterialConfiguration Scintillator
+/hepd/Calorimeter/PoronMaterialConfiguration Poron
+/hepd/Calorimeter/CarbonFiberMaterialConfiguration CarbonFiber
+
+#
+/hepd/phys/addPhysics  emstandard_opt4
+/run/initialize
+/hepd/CalorimeterSD/useBirksLaw false
+/hepd/VetoSD/useBirksLaw false
+#
+#
+/hepd/gun/setDefault
+/hepd/gun/random
+#/hepd/gun/toCenter
+#/hepd/gun/energy 30 MeV
+/hepd/gun/particle e-
+/hepd/gun/powerlaw 1 100 MeV -3
+#
+
+/tracking/verbose 0
+/random/setSeeds 1777992 744546
+
+/hepd/producer/SetRootFile Test.root HEPD
+
+/run/beamOn 10000
+
+/hepd/producer/StoreRootFile
