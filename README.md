@@ -1,2 +1,2 @@
 # Limadou
-Limadou code
+Limadou Package for data analysis
