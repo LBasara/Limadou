@@ -19,71 +19,14 @@
 #include <sstream>
 #include <fstream>
 
+#include "LEvent.hh"
+#include "LTrackerCluster.hh"
+
 //structures
-
-struct LEvent {
-  Short_t strip[NCHAN];
-  UInt_t trigger_index;
-  UInt_t hepd_time;
-  UInt_t event_index;
-  UShort_t event_length;
-  UShort_t pmt_high[NPMT];
-  UShort_t pmt_low[NPMT];
-  UShort_t rate_meter[NRATEMETER];
-  Bool_t trigger_flag[NPMT];
-  UInt_t alive_time;
-  UInt_t dead_time;
-  
-  void DumpStrip() {
-    for(int i=0; i<NCHAN;++i) std::cout << strip[i] << " ";
-    std::cout << std::endl;
-    return;
-  };
-};
-
-struct cluster {
-  int seed;
-  double count[CLUSTERSIZE];
-  double sigma[CLUSTERSIZE];
-  double sign[CLUSTERSIZE];
-  double eta;
-double GetSides(double SideThreshold){
-    double result=0.;
-    if(sign[0]>SideThreshold) result += count[CLUSTERSIZE/2-1];
-    if(sign[2]>SideThreshold) result += count[CLUSTERSIZE/2+1];
-    return result;
-  }
-double GetCounts(double SideThreshold){
-    double result=0.;
-    for(int i=0;i<CLUSTERSIZE;++i)
-      if(sign[i]>SideThreshold) result += count[i];
-    
-    return result;
-  }
-  double ChargeCenter(double SideThreshold){
-    double result=0.;
-    double tot_sign=0.;
-    for(int i=0;i<CLUSTERSIZE;++i){
-      if(sign[i]>SideThreshold) {
-	result += i*count[i];
-	tot_sign +=count[i];
-      }
-    }
-    return result/tot_sign;
-  }
-
-  int ClusterSize(double SideThreshold){
-    int size=0;
-    for(int i=0;i<CLUSTERSIZE;++i)
-      if(sign[i]>SideThreshold) ++size;
-   
-    return size;
-  }
-};
 
 struct event {
   int entry;
-  std::vector<cluster> cls;
+  std::vector<LTrackerCluster> cls;
 };
 
 //Getting data from the Limadou TTree
@@ -823,10 +766,10 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
     adc_p1_m1_p_histo[ld]=new TH2D(Form("adc_p1_m1_p_%d",ld),Form("adc_p1_m1_p_%d",ld),160,-10,150,160,-10,150);
     adc_p1_m1_n_histo[ld]=new TH2D(Form("adc_p1_m1_n_%d",ld),Form("adc_p1_m1_n_%d",ld),160,-10,150,160,-10,150);
 
-    charge_center_p_hist[ld]=new TH1D(Form("charge_center_p_%d",ld),Form("charge_center_p_%d;cluster_chan;counts",ld),CLUSTERSIZE*8,0,CLUSTERSIZE);
-    charge_center_n_hist[ld]=new TH1D(Form("charge_center_n_%d",ld),Form("charge_center_n_%d;cluster_chan;counts",ld),CLUSTERSIZE*8,0,CLUSTERSIZE);
-    charge_center_corr_p_hist[ld]=new TH1D(Form("charge_center_corr_p_%d",ld),Form("charge_center_corr_p_%d;cluster_chan;counts",ld),CLUSTERSIZE*8,0,CLUSTERSIZE);
-    charge_center_corr_n_hist[ld]=new TH1D(Form("charge_center_corr_n_%d",ld),Form("charge_center_corr_n_%d;cluster_chan;counts",ld),CLUSTERSIZE*8,0,CLUSTERSIZE);
+    charge_center_p_hist[ld]=new TH1D(Form("charge_center_p_%d",ld),Form("charge_center_p_%d;cluster_chan;counts",ld),CLUSTERCHANNELS*8,0,CLUSTERCHANNELS);
+    charge_center_n_hist[ld]=new TH1D(Form("charge_center_n_%d",ld),Form("charge_center_n_%d;cluster_chan;counts",ld),CLUSTERCHANNELS*8,0,CLUSTERCHANNELS);
+    charge_center_corr_p_hist[ld]=new TH1D(Form("charge_center_corr_p_%d",ld),Form("charge_center_corr_p_%d;cluster_chan;counts",ld),CLUSTERCHANNELS*8,0,CLUSTERCHANNELS);
+    charge_center_corr_n_hist[ld]=new TH1D(Form("charge_center_corr_n_%d",ld),Form("charge_center_corr_n_%d;cluster_chan;counts",ld),CLUSTERCHANNELS*8,0,CLUSTERCHANNELS);
 
     clustersize_p_hist[ld]=new TH1D(Form("clustersize_p_%d",ld),Form("clusersize_p_%d;clustersize;counts",ld),7,0,7);
     clustersize_n_hist[ld]=new TH1D(Form("clustersize_n_%d",ld),Form("clusersize_n_%d;clustersize;counts",ld),7,0,7);
@@ -993,10 +936,10 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	// ***********************************************
 	// Fill cluster data *****************************
 
-	cluster mycluster;
+	LTrackerCluster mycluster;
 	mycluster.seed = seed;
-	for(int iii=0; iii<CLUSTERSIZE; ++iii) {
-	  int cchan = seed-CLUSTERSIZE/2+iii;// remember that the shift depends on clustersize!!
+	for(int iii=0; iii<CLUSTERCHANNELS; ++iii) {
+	  int cchan = seed-CLUSTERCHANNELS/2+iii;// remember that the shift depends on clustersize!!
 	  bool SameLP_FLAG = SameLadderPlane(seed, cchan);
 	  if((IsAlive) && SameLP_FLAG ){
 	    //if(counts_clean[cchan][iev]/sigma3_calib[cchan]>3.){
@@ -1017,11 +960,11 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	//mycluster.eta=(mycluster.count[3]>mycluster.count[1] ? (mycluster.count[3]-mycluster.count[2])/(mycluster.count[3]+mycluster.count[2]) : (mycluster.count[2]-mycluster.count[1])/(mycluster.count[2]+mycluster.count[1]));
 
 	//symmethrize eta!
-	if(mycluster.sign[CLUSTERSIZE/2+1]>0. || mycluster.sign[CLUSTERSIZE/2-1]>0.)
-	  mycluster.eta=(mycluster.count[CLUSTERSIZE/2+1]>mycluster.count[CLUSTERSIZE/2-1] ? (mycluster.count[CLUSTERSIZE/2+1])/(mycluster.count[CLUSTERSIZE/2+1]+mycluster.count[CLUSTERSIZE/2]) : (mycluster.count[CLUSTERSIZE/2])/(mycluster.count[CLUSTERSIZE/2]+mycluster.count[CLUSTERSIZE/2-1]));
+	if(mycluster.sign[CLUSTERCHANNELS/2+1]>0. || mycluster.sign[CLUSTERCHANNELS/2-1]>0.)
+	  mycluster.eta=(mycluster.count[CLUSTERCHANNELS/2+1]>mycluster.count[CLUSTERCHANNELS/2-1] ? (mycluster.count[CLUSTERCHANNELS/2+1])/(mycluster.count[CLUSTERCHANNELS/2+1]+mycluster.count[CLUSTERCHANNELS/2]) : (mycluster.count[CLUSTERCHANNELS/2])/(mycluster.count[CLUSTERCHANNELS/2]+mycluster.count[CLUSTERCHANNELS/2-1]));
 	else  mycluster.eta=-999.;	
 	myevent.cls.push_back(mycluster);
-	ichan = seed+(CLUSTERSIZE); // very important! Restart after the cluster
+	ichan = seed+(CLUSTERCHANNELS); // very important! Restart after the cluster
       }
       
       if(myevent.cls.size()>0) clev.push_back(myevent);
@@ -1058,7 +1001,7 @@ int ladder=(ChanToLadder(ev_seed));
 	  if(eta>ETAMIN && eta<ETAMAX) ++eta_dist_p[ladder][(int)(ETASTEP*(eta)/ETARANGE)];
 	}
 
-	//outputfile << nev <<"\t"<< ChanToLadder(ev_seed) <<"\t"<<ChanToSide(ev_seed)<<"\t"<<ev_seed%SIDE_CHAN+eta*CLUSTERSIZE/2<<std::endl;
+	//outputfile << nev <<"\t"<< ChanToLadder(ev_seed) <<"\t"<<ChanToSide(ev_seed)<<"\t"<<ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2<<std::endl;
 	//WARNING! Plotting sign instead sigma!!!!
 	double ev_sigma_seed=clev.at(nev).cls.at(ncl).sign[1];
 	double ev_sigma_m1=clev.at(nev).cls.at(ncl).sign[0];
@@ -1097,15 +1040,15 @@ int ladder=(ChanToLadder(ev_seed));
 	int seed_p[N_LADDER]={0};
 	int seed_n[N_LADDER]={0};
 	for(int ncl=0;ncl<(int)(storage.at(vec).at(nev).cls.size());++ncl){
-	  //double countcluster[CLUSTERSIZE];
+	  //double countcluster[CLUSTERCHANNELS];
 	  //int ev_seed=clev.at(nev).cls.at(ncl).seed;
 	  int ev_seed=storage.at(vec).at(nev).cls.at(ncl).seed;
-	  double ev_adc_seed=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERSIZE/2];
-	  double ev_adc_p1=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERSIZE/2+1];
-	  double ev_adc_m1=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERSIZE/2-1];
-	  double ev_sign_seed=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERSIZE/2];
-	  double ev_sign_p1=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERSIZE/2+1];
-	  double ev_sign_m1=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERSIZE/2-1];
+	  double ev_adc_seed=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2];
+	  double ev_adc_p1=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2+1];
+	  double ev_adc_m1=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2-1];
+	  double ev_sign_seed=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERCHANNELS/2];
+	  double ev_sign_p1=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERCHANNELS/2+1];
+	  double ev_sign_m1=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERCHANNELS/2-1];
 	  //double eta=clev.at(nev).cls.at(ncl).eta;
 
 	  double chargecenter=0.;
@@ -1121,11 +1064,11 @@ int ladder=(ChanToLadder(ev_seed));
 	  int ladder=ChanToLadder(ev_seed);
 	  int side=ChanToSide(ev_seed);
 	  if(side){//n side
-	    for(int cls=0;cls<CLUSTERSIZE;++cls){
+	    for(int cls=0;cls<CLUSTERCHANNELS;++cls){
 	      chargecenter+=(storage.at(vec).at(nev).cls.at(ncl).count[cls]*(cls+f_eta_n[ladder][(int)eta/ETASTEP]*PITCH));
 	      totcharge+=storage.at(vec).at(nev).cls.at(ncl).count[cls];
 	    }
-	    x_n[ladder]=(double)(ev_seed%SIDE_CHAN)+(chargecenter/totcharge-CLUSTERSIZE/2);
+	    x_n[ladder]=(double)(ev_seed%SIDE_CHAN)+(chargecenter/totcharge-CLUSTERCHANNELS/2);
 	    seed_n[ladder]=ev_seed%SIDE_CHAN;
 	    outputfile << nev <<"\t"<< ladder <<"\t"<<side<<"\t"<<x_n[ladder] <<std::endl;
 
@@ -1157,17 +1100,17 @@ int ladder=(ChanToLadder(ev_seed));
 	clustersize_n_hist[ladder]->Fill(storage.at(vec).at(nev).cls.at(ncl).ClusterSize(3.));
 	eta_first_n_hist[ladder]->Fill(eta);
 	eta_ADC_n_histo[ladder]->Fill(eta,storage.at(vec).at(nev).cls.at(ncl).GetCounts(3.));
-	real_cluster_pos_n_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERSIZE/2);
-	for(int i=0;i<CLUSTERSIZE;++i)
+	real_cluster_pos_n_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2);
+	for(int i=0;i<CLUSTERCHANNELS;++i)
 	  cluster_shape_n_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sign[i]);
 	  }
 	  else{//p side
-	    for(int cls=0;cls<CLUSTERSIZE;++cls){
+	    for(int cls=0;cls<CLUSTERCHANNELS;++cls){
 	      chargecenter+=(storage.at(vec).at(nev).cls.at(ncl).count[cls]*(cls+f_eta_p[ladder][(int)eta/ETASTEP]*PITCH));
 	      totcharge+=storage.at(vec).at(nev).cls.at(ncl).count[cls];
 	    }
 	    
-	    x_p[ladder]=(double)(ev_seed%SIDE_CHAN)+(chargecenter/totcharge-CLUSTERSIZE/2);
+	    x_p[ladder]=(double)(ev_seed%SIDE_CHAN)+(chargecenter/totcharge-CLUSTERCHANNELS/2);
 	    seed_p[ladder]=ev_seed%SIDE_CHAN;
 	    outputfile << nev <<"\t"<< ladder <<"\t"<<side<<"\t"<<x_p[ladder] <<std::endl;
 
@@ -1197,8 +1140,8 @@ int ladder=(ChanToLadder(ev_seed));
 	clustersize_p_hist[ladder]->Fill(storage.at(vec).at(nev).cls.at(ncl).ClusterSize(3.));
 	eta_first_p_hist[ladder]->Fill(eta);
 	eta_ADC_p_histo[ladder]->Fill(eta,storage.at(vec).at(nev).cls.at(ncl).GetCounts(3.));
-	real_cluster_pos_p_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERSIZE/2);
-	for(int i=0;i<CLUSTERSIZE;++i)
+	real_cluster_pos_p_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2);
+	for(int i=0;i<CLUSTERCHANNELS;++i)
 	  cluster_shape_p_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sign[i]);
 	    
 	  }

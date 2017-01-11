@@ -9,10 +9,6 @@ const int BIN_SIGMA=500;
 const double MAX_SIGMA=100.;
 const double SIGMA_STEP=MAX_SIGMA/(double)BIN_SIGMA;
 
-const double MAX_SIGMA2=300.;
-const int CLUSTERSIZE=5;
-const int NEV_WINDOW = CLUSTERSIZE+2;
-
 const double MIN_NCHANSPERBIN_4CN=5;
 const double MIN_SIGMA_CHANNEL_OFF=6;
 const double MAX_SIGMA_CHANNEL_OFF=30.;
