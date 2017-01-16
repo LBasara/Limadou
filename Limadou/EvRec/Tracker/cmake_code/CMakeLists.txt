@@ -1,5 +1,5 @@
 # CMakeLists.txt for event package. It creates a library with dictionary and a main program
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 project(event)
 
 # You need to tell CMake where to find the ROOT installation. This can be done in a number of ways:
