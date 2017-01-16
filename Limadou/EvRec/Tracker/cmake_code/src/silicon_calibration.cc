@@ -21,6 +21,7 @@
 
 #include "LEvent.hh"
 #include "LTrackerCluster.hh"
+#include "LTrackerTools.hh"
 
 //structures
 
@@ -128,6 +129,7 @@ double sigma_clean(short *vector,double *cmn,double mean,double threshold,double
 }
 
 
+//R.I.
 double GetCleanedSigma(int *h_va /*sigma_VA*/,int length=BIN_SIGMA) {
     // Put the histo into something workable on
     int nb=length;
@@ -368,44 +370,6 @@ TCanvas *drawing6_2D(TH2D *ladder[N_LADDER]){
 
 
 //locate chan
-int ChanToLadder(int nStrip) {
-  if(nStrip<0 || nStrip>=NCHAN)
-    return -1;
-  else 
-    return nStrip/LADDER_CHAN;
-}
-
-int ChanToADC(int nStrip) {
-  int nLadder = ChanToLadder(nStrip);
-  int reducednStrip = nStrip - LADDER_CHAN*nLadder;
-  return reducednStrip/ADC_CHAN;
-}
-
-int ChanToVA(int nStrip) {
-  int nADC = ChanToADC(nStrip);
-  int reducednStrip = nStrip - ADC_CHAN*nADC;
-  return reducednStrip/VA_CHAN;
-}
-
-int ChanToSide(int nStrip) { // 0 p - 1 n
-  int nADC = ChanToADC(nStrip);
-  return (nADC/2)%2;
-}
-
-int ChanToPlane(int nStrip) { // 0 external - 1 internal
-  int scale=ChanToLadder(nStrip);
-  if(scale%2) return 1;
-  else return 0;
-}
-
-int ChanToLadderPlane (int nChan) { // return 0,1,....11
-  return ChanToLadder(nChan)*2+ChanToSide(nChan);
-}
-
-bool SameLadderPlane(int Chan1, int Chan2) {
-  return (ChanToLadderPlane(Chan1) == ChanToLadderPlane(Chan2));
-}
-
 double correction(double eta){
   double result=-9999.;
   double sum=71.54;
