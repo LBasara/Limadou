@@ -56,7 +56,8 @@ std::vector<LTrackerCluster>* GetClusters(double* cont, double *sigma) {
   for(int ich=0; ich<NCHAN; ++ich) sn[ich]=cont[ich]/sigma[ich];
   
   // Main loop
-  for(int ich=0; ich<NCHAN; ++ich) {
+  //  for(int ich=0; ich<NCHAN; ++ich) {
+  for(int ich=NCHAN-1; ich>-1; --ich) {
     if(sn[ich]<CLFINDTHRESHOLD) continue;
  
     // Check if there's a higher maximum  - up to two chans ahead
@@ -85,13 +86,14 @@ std::vector<LTrackerCluster>* GetClusters(double* cont, double *sigma) {
     double meter=numerator/denominator;
     // Compare with the threshold
     if(meter<CLSNTHRESHOLD) {
-      ich+=2; // already explored up to ich+2
+      //      ich+=2; // already explored up to ich+2
+      ich-=2;
       continue;
     }
     LTrackerCluster mycl(maxindex1, cont, sigma);
     result->push_back(mycl);
-    ich=maxindex1+2; // already explored up there.
-
+    //ich=maxindex1+2; // already explored up there.
+    ich=maxindex1-2; // already explored up there.
   } // end of the main loop:: Warning, possible overlap between clusters' boundaries
 
   return result;

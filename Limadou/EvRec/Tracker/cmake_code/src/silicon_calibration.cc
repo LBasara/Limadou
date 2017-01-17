@@ -620,8 +620,8 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
   TH2D *clusterseed_m1_corr_histo=new TH2D("seed_m1_corr","",1000,0,1000,700,-200,500);
   TH2D *clusterseed_p1_corr_histo=new TH2D("seed_p1_corr","",1000,0,1000,700,-200,500);
 
-  TH1D *deltax_central_ladder_p_hist=new TH1D("deltax_central_ladder_p_hist","deltax_central_ladder_p;deltax;counts",200,-5,5);
-TH1D *deltax_central_ladder_n_hist=new TH1D("deltax_central_ladder_n_hist","deltax_central_ladder_n;deltax;counts",200,-5,5);
+  TH1D *deltax_central_ladder_p_hist=new TH1D("deltax_central_ladder_p_hist","deltax_central_ladder_p;deltax;counts",400,-50,50);
+  TH1D *deltax_central_ladder_n_hist=new TH1D("deltax_central_ladder_n_hist","deltax_central_ladder_n;deltax;counts",400,-50,50);
 
 TH1D *deltax_central_ladder_noeta_p_hist=new TH1D("deltax_central_ladder_noeta_p_hist","deltax_central_ladder_noeta_p;deltax;counts",200,-5,5);
 TH1D *deltax_central_ladder_noeta_n_hist=new TH1D("deltax_central_ladder_noeta_n_hist","deltax_central_ladder_noeta_n;deltax;counts",200,-5,5);
