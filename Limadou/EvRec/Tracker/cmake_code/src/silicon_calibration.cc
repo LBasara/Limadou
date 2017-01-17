@@ -830,8 +830,6 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 
     for(int iev=0;iev<NCALIBEVENTS;++iev){
       for(int ichan=0;ichan<NCHAN;++ichan){
-	
-	//std::cout<<"ev "<<iev<<"chan "<<ichan<<"data "<<data[ichan][iev]<<"mean2 "<<mean2_calib[ichan]<<"CN "<<CN_matrix_clean[iev][ichan/VA_CHAN]<<std::endl;
 	counts_clean[iev][ichan]=(data[ichan][iev]-mean2_calib[ichan]-CN_matrix_clean[iev][ichan/VA_CHAN]);
 	total_counts_clean->Fill(ichan,counts_clean[iev][ichan]);
 	//total_counts_mean->Fill(ichan,data[ichan][iev]-mean2_calib[ichan]);
@@ -856,9 +854,18 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
       std::vector<LTrackerCluster> *clusters=GetClusters(counts_clean[iev],sigma3_calib);
       //std::cout<<"Check. Event N "<<iev<<" Package "<<ipk<<std::endl;
       event myevent;
-      for(int ev=0;ev<clusters->size();++ev)
+      for(int ev=0;ev<clusters->size();++ev){
+	int ladder=ChanToLadder(clusters->at(ev).seed);
+	double eta=clusters->at(ev).GetEta();
+	if(eta>=ETAMIN && eta<=ETAMAX){
+	  if(ChanToSide(clusters->at(ev).seed)) //n cases
+	    ++eta_dist_n[ladder][(int)(ETASTEP*(eta)/ETARANGE)];
+	  else 
+	    ++eta_dist_p[ladder][(int)(ETASTEP*(eta)/ETARANGE)];
+	}
+	
 	myevent.cls.push_back(clusters->at(ev));
-      
+      }
       clev.push_back(myevent);
       
       /*
@@ -992,7 +999,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	int seed_p[N_LADDER]={0 };
 	int seed_n[N_LADDER]={0 };
 	for(int ncl=0;ncl<(int)(storage.at(vec).at(nev).cls.size());++ncl){
-	  std::cout<<"test1"<<std::endl;
+	  
 	  
 	  int ev_seed=storage.at(vec).at(nev).cls.at(ncl).seed;
 	  double ev_adc_seed=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2];
