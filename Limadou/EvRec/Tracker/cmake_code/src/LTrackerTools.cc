@@ -1,7 +1,6 @@
 #include "LTrackerTools.hh"
 #include "detector_const.hh"
 #include "LTrackerCluster.hh"
-#include <vector>
 #include <algorithm>
 #include <math.h>
 
