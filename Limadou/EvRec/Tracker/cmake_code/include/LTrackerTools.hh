@@ -2,6 +2,7 @@
 #define __LTRACKERTOOLS__ 1
 
 #include <vector>
+#include "LTrackerCluster.hh"
 
 int ChanToLadder(int nStrip);
 int ChanToADC(int nStrip);

@@ -604,7 +604,7 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
 
   TH2D *total_counts_adc=new TH2D("total_counts_adc","total_counts_adc",NCHAN,0,NCHAN,3000,0,3000);
   TH2D *total_counts_mean=new TH2D("total_counts_mean","total_counts_mean",NCHAN,0,NCHAN,1000,-500,500);
-  TH2D *total_counts_clean=new TH2D("total_counts_clear","total_counts_clear",NCHAN,0,NCHAN,3000,-500,500);
+  TH2D *total_counts_clean=new TH2D("total_counts_clean","total_counts_clean;chan;[ADC]",NCHAN,0,NCHAN,3000,-500,500);
  
 
   TH2D *significativit_histo=new TH2D("significativit","",NCHAN,0,NCHAN,200,-50,50.);
@@ -712,12 +712,12 @@ TH1D *deltax_central_ladder_noeta_n_hist=new TH1D("deltax_central_ladder_noeta_n
     seed_frac_p1_p_histo[ld]=new TH2D(Form("seed_frac_p1_p_histo_%d",ld),Form("seed_frac_p1_p_histo_%d;ADC;ADC",ld),1000,0,1000,100,-20,20);
     seed_frac_p1_n_histo[ld]=new TH2D(Form("seed_frac_p1_n_histo_%d",ld),Form("seed_frac_p1_n_histo_%d",ld),1000,0,1000,100,-20,20);
 
-    clusterseed_p_histo[ld]=new TH2D(Form("clusterseed_p_%d",ld),Form("clusterseed_p_%d",ld),500,0,500,400,-200,200);
-    clusterseed_n_histo[ld]=new TH2D(Form("clusterseed_n_%d",ld),Form("clusterseed_n_%d",ld),500,0,500,400,-200,200);
-    clusterseed_m1_p_histo[ld]=new TH2D(Form("clusterseed_m1_p_%d",ld),Form("clusterseed_m1_p_%d",ld),500,0,500,400,-200,200);
-    clusterseed_m1_n_histo[ld]=new TH2D(Form("clusterseed_m1_n_%d",ld),Form("clusterseed_m1_n_%d",ld),500,0,500,400,-200,200);
-    clusterseed_p1_p_histo[ld]=new TH2D(Form("clusterseed_p1_p_%d",ld),Form("clusterseed_p1_p_%d",ld),500,0,500,400,-200,200);
-clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("clusterseed_p1_n_%d",ld),500,0,500,400,-200,200);
+    clusterseed_p_histo[ld]=new TH2D(Form("clusterseed_p_%d",ld),Form("clusterseed_p_%d;seed [ADC]; (seed+1)+(seed-1) [ADC]",ld),500,0,500,400,-200,200);
+    clusterseed_n_histo[ld]=new TH2D(Form("clusterseed_n_%d",ld),Form("clusterseed_n_%d;seed [ADC]; (seed+1)+(seed-1) [ADC]",ld),500,0,500,400,-200,200);
+    clusterseed_m1_p_histo[ld]=new TH2D(Form("clusterseed_m1_p_%d",ld),Form("clusterseed_m1_p_%d;seed [ADC]; seed-1 [ADC]",ld),500,0,500,400,-200,200);
+    clusterseed_m1_n_histo[ld]=new TH2D(Form("clusterseed_m1_n_%d",ld),Form("clusterseed_m1_n_%d;seed [ADC]; seed-1 [ADC]",ld),500,0,500,400,-200,200);
+    clusterseed_p1_p_histo[ld]=new TH2D(Form("clusterseed_p1_p_%d",ld),Form("clusterseed_p1_p_%d;seed [ADC]; seed+1 [ADC]",ld),500,0,500,400,-200,200);
+clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("clusterseed_p1_n_%d;seed [ADC]; seed+1 [ADC]",ld),500,0,500,400,-200,200);
 
 
     sign_frac_sum_p_histo[ld]=new TH2D(Form("sign_frac_sum_p_histo_%d",ld),Form("sign_frac_sum_p_histo_%d",ld),100,0,100,100,-20,20);
@@ -727,8 +727,8 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
     sign_frac_p1_p_histo[ld]=new TH2D(Form("sign_frac_p1_p_histo_%d",ld),Form("sign_frac_p1_p_histo_%d",ld),100,0,100,100,-20,20);
     sign_frac_p1_n_histo[ld]=new TH2D(Form("sign_frac_p1_n_histo_%d",ld),Form("sign_frac_p1_n_histo_%d",ld),100,0,100,100,-20,20);
 
-    adc_p1_m1_p_histo[ld]=new TH2D(Form("adc_p1_m1_p_%d",ld),Form("adc_p1_m1_p_%d",ld),160,-10,150,160,-10,150);
-    adc_p1_m1_n_histo[ld]=new TH2D(Form("adc_p1_m1_n_%d",ld),Form("adc_p1_m1_n_%d",ld),160,-10,150,160,-10,150);
+    adc_p1_m1_p_histo[ld]=new TH2D(Form("adc_p1_m1_p_%d",ld),Form("adc_p1_m1_p_%d;ADC_p1[ADC];ADC_m1[ADC]",ld),160,-10,150,160,-10,150);
+    adc_p1_m1_n_histo[ld]=new TH2D(Form("adc_p1_m1_n_%d",ld),Form("adc_p1_m1_n_%d;ADC_p1[ADC];ADC_m1[ADC]",ld),160,-10,150,160,-10,150);
 
     charge_center_p_hist[ld]=new TH1D(Form("charge_center_p_%d",ld),Form("charge_center_p_%d;cluster_chan;counts",ld),CLUSTERCHANNELS*8,0,CLUSTERCHANNELS);
     charge_center_n_hist[ld]=new TH1D(Form("charge_center_n_%d",ld),Form("charge_center_n_%d;cluster_chan;counts",ld),CLUSTERCHANNELS*8,0,CLUSTERCHANNELS);
@@ -996,6 +996,8 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
       for(int nev=0;nev<(int)(storage.at(vec).size());++nev){// I want to correct values for f_eta and fill all the histograms here.
 	double x_p[N_LADDER]={0.};
 	double x_n[N_LADDER]={0.};
+	double sn_p[N_LADDER]={0.};
+	double sn_n[N_LADDER]={0.};
 	int seed_p[N_LADDER]={0 };
 	int seed_n[N_LADDER]={0 };
 	for(int ncl=0;ncl<(int)(storage.at(vec).at(nev).cls.size());++ncl){
@@ -1015,7 +1017,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 
 	  double chargecenter=0.;
 	  double totcharge=1.;
-	  double eta=storage.at(vec).at(nev).cls.at(ncl).eta;
+	  double eta=storage.at(vec).at(nev).cls.at(ncl).GetEta();
 	  
 	  if(ev_sign_seed<MAX_SIGMA2 && ev_sign_m1<MAX_SIGMA2 && ev_sign_p1<MAX_SIGMA2){
 	  clustersigma_histo->Fill(ev_sign_seed,sqrt(ev_sign_m1*ev_sign_m1+ev_sign_p1*ev_sign_p1));
@@ -1035,14 +1037,17 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	 
 	  if(side){//n side
 	    
-	    /*
+	    
 	    if((ev_sign_p1>=0. || ev_sign_m1>=0.) ){
 	      chargecenter=(ev_sign_p1>ev_sign_m1 ? CLUSTERCHANNELS/2+f_eta_n[ladder][(int)(eta*ETASTEP)] : CLUSTERCHANNELS/2-1+f_eta_n[ladder][(int)(eta*ETASTEP)]);
 	    }
 	    else chargecenter=9999.;
-	    */
-	    chargecenter=9999.;
+	    
+	    //chargecenter=9999.;
+	    if(!x_n[ladder] || ev_sign_seed>sn_n[ladder]){
 	    x_n[ladder]=(double)(ev_seed%SIDE_CHAN)+(chargecenter/totcharge-CLUSTERCHANNELS/2);
+	    sn_n[ladder]=ev_sign_seed; //Warning!!!! Should use the squared sum??
+	    }
 	    
 	    seed_n[ladder]=ev_seed%SIDE_CHAN;
 	    outputfile << nev <<"\t"<< ladder <<"\t"<<side<<"\t"<<x_n[ladder] <<std::endl;
@@ -1073,8 +1078,8 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	    sum_seed_n_hist[ladder]->Fill(ev_adc_seed);
 	    charge_center_n_hist[ladder]->Fill(storage.at(vec).at(nev).cls.at(ncl).ChargeCenter(3.));
 	    clustersize_n_hist[ladder]->Fill(storage.at(vec).at(nev).cls.at(ncl).ClusterSize(3.));
-	eta_first_n_hist[ladder]->Fill(eta);
-	eta_ADC_n_histo[ladder]->Fill(eta,storage.at(vec).at(nev).cls.at(ncl).GetCounts(3.));
+	    eta_first_n_hist[ladder]->Fill(eta);
+	    eta_ADC_n_histo[ladder]->Fill(eta,storage.at(vec).at(nev).cls.at(ncl).GetEtaCounts());
 	real_cluster_pos_n_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2);
 	for(int i=0;i<CLUSTERCHANNELS;++i)
 	  cluster_shape_n_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sn[i]);
@@ -1082,14 +1087,17 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 
 	  }
 	  else{//p side
-	    /*
+	    
 	    if((ev_sign_p1>=0. || ev_sign_m1>=0.) ){
 	      chargecenter=(ev_sign_p1>ev_sign_m1 ? CLUSTERCHANNELS/2+f_eta_p[ladder][(int)(eta*ETASTEP)] : CLUSTERCHANNELS/2-1+f_eta_p[ladder][(int)(eta*ETASTEP)]);
 	    }
 	    else chargecenter=9999.;
-	    */
-	    chargecenter=9999.;
+	    
+	    //chargecenter=9999.;
+	    if(!x_p[ladder] || ev_sign_seed>sn_p[ladder]){
 	    x_p[ladder]=(double)(ev_seed%SIDE_CHAN)+(chargecenter/totcharge-CLUSTERCHANNELS/2);
+	    sn_p[ladder]=ev_sign_seed; //warning! see n case for more information
+	    }
    	    
 	    seed_p[ladder]=ev_seed%SIDE_CHAN;
 	    outputfile << nev <<"\t"<< ladder <<"\t"<<side<<"\t"<<x_p[ladder] <<std::endl;
@@ -1231,9 +1239,9 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   // display_ladders2D(total_counts_adc,"tot_counts",";chan;ADC")->Print(Stream2.str().c_str());
   //display_ladders2D(mean2_histo,"mean_2",";chan;ADC")->Print(Stream2.str().c_str());
   //display_ladders2D(total_counts_mean,"total_counts_mean",";chan;")->Print(Stream2.str().c_str());
-  display_ladders2D(total_counts_clean,"total_counts_clean",";chan;")->Print(Stream2.str().c_str());
-  display_ladders2D(significativit_histo,"sign",";chan;")->Print(Stream2.str().c_str());
-  display_ladders1D(good_chan_hist,"good_channel",";chan;")->Print(Stream2.str().c_str());
+  display_ladders2D(total_counts_clean,"total_counts_clean",";chan;ADC clean")->Print(Stream2.str().c_str());
+  display_ladders2D(significativit_histo,"SN",";chan;SN")->Print(Stream2.str().c_str());
+  //display_ladders1D(good_chan_hist,"good_channel",";chan;")->Print(Stream2.str().c_str());
   drawing2D(clusterseed_histo,"correlation plot;seed [ADC];(seed+1)+(seed-1) [ADC]")->Print(Stream2.str().c_str());
   drawing2D(clusterseed_corr_histo,"correlation plot corr 3*sigma;seed [ADC];(seed+1)+(seed-1) [ADC]")->Print(Stream2.str().c_str());
   drawing6_2D(clusterseed_p_histo)->Print(Stream2.str().c_str());
@@ -1263,10 +1271,10 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   Stream3_close << outputname << "_cluster_analysis.pdf]";
 
   out->Print(Stream3_open.str().c_str());
-  drawing6_1D(sum_adc_p_hist)->Print(Stream3.str().c_str());
-  drawing6_1D(sum_adc_n_hist)->Print(Stream3.str().c_str());
-  drawing6_1D(sum_adc_p_corr_hist)->Print(Stream3.str().c_str());
-  drawing6_1D(sum_adc_n_corr_hist)->Print(Stream3.str().c_str());
+  //  drawing6_1D(sum_adc_p_hist)->Print(Stream3.str().c_str());
+  //drawing6_1D(sum_adc_n_hist)->Print(Stream3.str().c_str());
+  //drawing6_1D(sum_adc_p_corr_hist)->Print(Stream3.str().c_str());
+  //drawing6_1D(sum_adc_n_corr_hist)->Print(Stream3.str().c_str());
   drawing6_1D(sum_seed_p_hist)->Print(Stream3.str().c_str());
   drawing6_1D(sum_seed_n_hist)->Print(Stream3.str().c_str());
   drawing6_1D(sum_m1_p_hist)->Print(Stream3.str().c_str());
