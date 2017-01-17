@@ -909,13 +909,13 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	    //if(counts_clean[cchan][iev]/sigma3_calib[cchan]>3.){
 	      mycluster.count[iii] =  counts_clean[cchan][iev];
 	      mycluster.sigma[iii] =  sigma3_calib[cchan];
-	      mycluster.sign[iii] = counts_clean[cchan][iev]/sigma3_calib[cchan];
+	      mycluster.sn[iii] = counts_clean[cchan][iev]/sigma3_calib[cchan];
 	      //}
 	  }
 	  else{//Is the best choice???
 	    mycluster.count[iii] = 0.;
 	    mycluster.sigma[iii] = 0.;
-	    mycluster.sign[iii] = 0.;
+	    mycluster.sn[iii] = 0.;
 	    
 	  }
 
@@ -924,7 +924,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	//mycluster.eta=(mycluster.count[3]>mycluster.count[1] ? (mycluster.count[3]-mycluster.count[2])/(mycluster.count[3]+mycluster.count[2]) : (mycluster.count[2]-mycluster.count[1])/(mycluster.count[2]+mycluster.count[1]));
 
 	//symmethrize eta!
-	if(mycluster.sign[CLUSTERCHANNELS/2+1]>0. || mycluster.sign[CLUSTERCHANNELS/2-1]>0.)
+	if(mycluster.sn[CLUSTERCHANNELS/2+1]>0. || mycluster.sn[CLUSTERCHANNELS/2-1]>0.)
 	  mycluster.eta=(mycluster.count[CLUSTERCHANNELS/2+1]>mycluster.count[CLUSTERCHANNELS/2-1] ? (mycluster.count[CLUSTERCHANNELS/2+1])/(mycluster.count[CLUSTERCHANNELS/2+1]+mycluster.count[CLUSTERCHANNELS/2]) : (mycluster.count[CLUSTERCHANNELS/2])/(mycluster.count[CLUSTERCHANNELS/2]+mycluster.count[CLUSTERCHANNELS/2-1]));
 	else  mycluster.eta=-999.;	
 	myevent.cls.push_back(mycluster);
@@ -944,9 +944,9 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	double ev_adc_seed=clev.at(nev).cls.at(ncl).count[2];
 	double ev_adc_p1=clev.at(nev).cls.at(ncl).count[3];
 	double ev_adc_m1=clev.at(nev).cls.at(ncl).count[1];
-	double ev_sign_seed=clev.at(nev).cls.at(ncl).sign[2];
-	double ev_sign_p1=clev.at(nev).cls.at(ncl).sign[3];
-	double ev_sign_m1=clev.at(nev).cls.at(ncl).sign[1];
+	double ev_sign_seed=clev.at(nev).cls.at(ncl).sn[2];
+	double ev_sign_p1=clev.at(nev).cls.at(ncl).sn[3];
+	double ev_sign_m1=clev.at(nev).cls.at(ncl).sn[1];
 	double eta=clev.at(nev).cls.at(ncl).eta;
 	/*
 	significativit_histo->Fill(ev_seed, ev_sign_seed);
@@ -967,9 +967,9 @@ int ladder=(ChanToLadder(ev_seed));
 
 	//outputfile << nev <<"\t"<< ChanToLadder(ev_seed) <<"\t"<<ChanToSide(ev_seed)<<"\t"<<ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2<<std::endl;
 	//WARNING! Plotting sign instead sigma!!!!
-	double ev_sigma_seed=clev.at(nev).cls.at(ncl).sign[1];
-	double ev_sigma_m1=clev.at(nev).cls.at(ncl).sign[0];
-	double ev_sigma_p1=clev.at(nev).cls.at(ncl).sign[2];
+	double ev_sigma_seed=clev.at(nev).cls.at(ncl).sn[1];
+	double ev_sigma_m1=clev.at(nev).cls.at(ncl).sn[0];
+	double ev_sigma_p1=clev.at(nev).cls.at(ncl).sn[2];
 	
 	if(ev_sigma_seed<MAX_SIGMA2 && ev_sigma_m1<MAX_SIGMA2 && ev_sigma_p1<MAX_SIGMA2){
 	  clustersigma_histo->Fill(ev_sigma_seed,sqrt(ev_sigma_m1*ev_sigma_m1+ev_sigma_p1*ev_sigma_p1));
@@ -1010,9 +1010,9 @@ int ladder=(ChanToLadder(ev_seed));
 	  double ev_adc_seed=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2];
 	  double ev_adc_p1=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2+1];
 	  double ev_adc_m1=storage.at(vec).at(nev).cls.at(ncl).count[CLUSTERCHANNELS/2-1];
-	  double ev_sign_seed=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERCHANNELS/2];
-	  double ev_sign_p1=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERCHANNELS/2+1];
-	  double ev_sign_m1=storage.at(vec).at(nev).cls.at(ncl).sign[CLUSTERCHANNELS/2-1];
+	  double ev_sign_seed=storage.at(vec).at(nev).cls.at(ncl).sn[CLUSTERCHANNELS/2];
+	  double ev_sign_p1=storage.at(vec).at(nev).cls.at(ncl).sn[CLUSTERCHANNELS/2+1];
+	  double ev_sign_m1=storage.at(vec).at(nev).cls.at(ncl).sn[CLUSTERCHANNELS/2-1];
 	  //double eta=clev.at(nev).cls.at(ncl).eta;
 
 	  double chargecenter=0.;
@@ -1066,7 +1066,7 @@ int ladder=(ChanToLadder(ev_seed));
 	eta_ADC_n_histo[ladder]->Fill(eta,storage.at(vec).at(nev).cls.at(ncl).GetCounts(3.));
 	real_cluster_pos_n_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2);
 	for(int i=0;i<CLUSTERCHANNELS;++i)
-	  cluster_shape_n_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sign[i]);
+	  cluster_shape_n_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sn[i]);
 	  }
 	  else{//p side
 	    for(int cls=0;cls<CLUSTERCHANNELS;++cls){
@@ -1106,7 +1106,7 @@ int ladder=(ChanToLadder(ev_seed));
 	eta_ADC_p_histo[ladder]->Fill(eta,storage.at(vec).at(nev).cls.at(ncl).GetCounts(3.));
 	real_cluster_pos_p_hist[ladder]->Fill(ev_seed%SIDE_CHAN+eta*CLUSTERCHANNELS/2);
 	for(int i=0;i<CLUSTERCHANNELS;++i)
-	  cluster_shape_p_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sign[i]);
+	  cluster_shape_p_histo[ladder]->Fill(i,storage.at(vec).at(nev).cls.at(ncl).sn[i]);
 	    
 	  }
 	  if(x_p[2]!=0. && x_p[3]!=0.){
