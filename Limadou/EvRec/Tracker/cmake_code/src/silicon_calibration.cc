@@ -853,11 +853,20 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
     std::vector< event > clev; // clever OR clean event 
     //std::cout<<"Check"<<std::endl;
     for(int iev=0;iev<NCALIBEVENTS;++iev){
-      std::vector<LTrackerCluster> *clusters=GetClusters(counts_clean[iev],sigma3_calib);
+      std::vector<LTrackerCluster>* clusters=GetClusters(counts_clean[iev],sigma3_calib);
       //std::cout<<"Check. Event N "<<iev<<" Package "<<ipk<<std::endl;
       event myevent;
-      for(int ev=0;ev<clusters->size();++ev)
+      for(int ev=0;ev<clusters->size();++ev){
 	myevent.cls.push_back(clusters->at(ev));
+	int ladder=ChanToLadder(clusters->at(ev).seed);
+	double eta=clusters->at(ev).GetEta();
+      if(eta>=ETAMIN && eta<=ETAMAX){
+      	if(ChanToSide(clusters->at(ev).seed)) //n cases
+	   ++eta_dist_n[ladder][(int)(ETASTEP*(eta)/ETARANGE)];	 
+        else 
+	  ++eta_dist_p[ladder][(int)(ETASTEP*(eta)/ETARANGE)];
+	}
+      }
       
       clev.push_back(myevent);
       
