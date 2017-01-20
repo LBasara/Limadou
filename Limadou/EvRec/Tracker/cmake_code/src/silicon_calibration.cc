@@ -19,7 +19,8 @@
 #include <sstream>
 #include <fstream>
 
-#include "LEvent.hh"
+#include "LEvRec0File.hh"
+#include "LEvRec0.hh"
 #include "LTrackerCluster.hh"
 #include "LTrackerTools.hh"
 
@@ -32,20 +33,6 @@ struct event {
 
 //Getting data from the Limadou TTree
 
-void SetBranchAddresses(TTree *tree, LEvent &ev) {
-  tree->SetBranchAddress("strip[4608]",&ev.strip);
-  tree->SetBranchAddress("trigger_index", &ev.trigger_index);
-  tree->SetBranchAddress("hepd_time", &ev.hepd_time);
-  tree->SetBranchAddress("event_index", &ev.event_index);
-  tree->SetBranchAddress("event_length", &ev.event_length);
-  tree->SetBranchAddress("pmt_high[64]", &ev.pmt_high);
-  tree->SetBranchAddress("pmt_low[64]", &ev.pmt_low);
-  tree->SetBranchAddress("rate_meter[9]", &ev.rate_meter);
-  tree->SetBranchAddress("trigger_flag[64]", &ev.trigger_flag);
-  tree->SetBranchAddress("alive_time", &ev.alive_time);
-  tree->SetBranchAddress("dead_time", &ev.dead_time);
-  return;
-}
 
 //mean, sigma, common noise functions
 
@@ -397,17 +384,11 @@ void f_eta(int size,double *x_axis,int* dn_deta,double *result){
 
 //Production of calibration file
 void calibration(std::string namefile_calib,std::string outputname){
-  TFile *input_calib=TFile::Open(namefile_calib.c_str());
-  //calibration run processing...
-  std::cout<<"Calibration run processing..."<<std::endl;
- 
-  TTree *tree_calib=(TTree*)input_calib->Get("T");
-  LEvent ev_calib;
-  SetBranchAddresses(tree_calib,ev_calib);
-  tree_calib->SetBranchStatus("*",kFALSE);
-  tree_calib->SetBranchStatus("strip[4608]",kTRUE);
+  LEvRec0File inpFile(namefile_calib.c_str());
+  LEvRec0 ev_calib;
+  inpFile.SetTheEventPointer(ev_calib);
 
-  const int NCALIBRUN=tree_calib->GetEntries();  
+  const int NCALIBRUN=inpFile.GetEntries();  
   short *data_calib[NCHAN];
 
   for(int ichan=0;ichan<NCHAN;++ichan)
@@ -422,7 +403,7 @@ void calibration(std::string namefile_calib,std::string outputname){
     CN_matrix_calib[iev]= new double[N_VA];
 
   for(int iev=0; iev<NCALIBRUN; ++iev){
-    tree_calib->GetEntry(iev);
+    inpFile.GetEntry(iev);
     for(int ichan=0;ichan<NCHAN;ichan++){
       data_calib[ichan][iev]=ev_calib.strip[ichan];
     }
@@ -567,16 +548,15 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
     if(gausindex[ichan]<=GAUSINDEX_CUT&& sigma3_calib[ichan]<SIGMAHOT) IsAlive[ichan]=1;
     else IsAlive[ichan]=0;
   }
-  //Opening data File
-  TFile *input=TFile::Open(namefile.c_str());
-  TTree *tree=(TTree*)input->Get("T");
-  LEvent ev;
+  
+
+  // Opening data file
+  LEvRec0File input(namefile.c_str());
+  LEvRec0 ev;
+  input.SetTheEventPointer(ev);
   gStyle->SetPalette(1);
   //gROOT->SetBatch(kTRUE);
-  SetBranchAddresses(tree,ev);
-  tree->SetBranchStatus("*",kFALSE);
-  tree->SetBranchStatus("strip[4608]",kTRUE);
-  const int MAXEVENTS = tree->GetEntries();
+  const int MAXEVENTS = input.GetEntries();
   const int N_PKG=MAXEVENTS/NCALIBEVENTS;
 
   //Histogram defining
@@ -801,7 +781,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   for(int ipk=0;ipk<N_PKG;++ipk){
     //std::cout<<"Processing events. Step "<<ipk<<std::endl;
     for(int iev=0; iev<NCALIBEVENTS; ++iev){
-      tree->GetEntry(NCALIBEVENTS*ipk+iev);
+      input.GetEntry(NCALIBEVENTS*ipk+iev);
       for(int ichan=0;ichan<NCHAN;ichan++){
 	data[ichan][iev]=ev.strip[ichan];
 	//total_counts_adc->Fill(ichan,data[ichan][iev]);

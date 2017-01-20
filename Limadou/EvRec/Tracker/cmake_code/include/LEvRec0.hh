@@ -1,14 +1,14 @@
 #include "detector_const.hh"
 #include "analysis_const.hh"
 
-#ifndef __LEVENT__
-#define __LEVENT__ 1
+#ifndef __LEVREC0__
+#define __LEVREC0__ 1
 
 
-class LEvent {
+class LEvRec0 {
 
 public:
-  LEvent();
+  LEvRec0();
 
   short strip[NCHAN];
   unsigned int trigger_index;

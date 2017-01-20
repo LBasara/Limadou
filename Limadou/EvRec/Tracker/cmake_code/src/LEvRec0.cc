@@ -1,10 +1,10 @@
 #include "detector_const.hh"
 #include "analysis_const.hh"
 
-#include "LEvent.hh"
+#include "LEvRec0.hh"
 #include <iostream>
 
-LEvent::LEvent(){
+LEvRec0::LEvRec0(){
   for(int i=0; i<NCHAN; ++i) strip[i]=0;
   trigger_index=0;
   hepd_time=0;
@@ -22,7 +22,7 @@ LEvent::LEvent(){
 
 
 
-void LEvent::DumpStrip(void) {
+void LEvRec0::DumpStrip(void) {
     for(int i=0; i<NCHAN;++i) std::cout << strip[i] << " ";
     std::cout << std::endl;
     return;
