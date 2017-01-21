@@ -1,6 +1,7 @@
 #include "LEvRec0.hh"
 #include "LTrackerCluster.hh"
 #include "LTrackerTools.hh"
+#include "Silicon_analysis_cls5.hh"
 
 #include <iostream>
 #include "TFile.h"
@@ -35,26 +36,25 @@
 using namespace std;
 
 
-const int n_chann = 4608; //number of channels 
-int n_steps = 0; // number of steps of 1000 events
-const int n_ev = 1000; //number of events per step
-const int VA_chan = 64; // number of channel in a VA
-const int n_VA = 72; // total number of VA
-const int ADC_CHAN = 3*VA_chan;
-const int LADDER_CHAN = 4*ADC_CHAN;
-const double sigmarange = 1.5;
-const double MIN_NCHANSPERBIN_4CN=5;
-const double MIN_SIGMA_CHANNEL_OFF=6;
-const double MAX_SIGMA_CHANNEL_OFF=30;
-const double MAX_NOISE_LEVEL=4; 
-const double sigma_cut=6.5;
-const double gaussian_threshold = 3.;
-
-
 //=================================================================================================
 //============================================= STRUCTURE =========================================
 //=================================================================================================
 
+/*
+const int n_chann = 4608; //number of channels 
+const int n_steps = 1; // number of steps of 1000 events
+int n_ev = 0; //number of events per step, default value. I assign it later in the code
+const int VA_chan = 64; // number of channel in a VA
+const int n_VA = 72; // total number of VA
+const int ADC_CHAN = 4*VA_chan;
+const int LADDER_CHAN = 3*ADC_CHAN;
+const double sigmarange = 1.5;
+const double MIN_NCHANSPERBIN_4CN=5;
+const double MIN_SIGMA_CHANNEL_OFF=6;
+const double MAX_SIGMA_CHANNEL_OFF=30;
+const double MAX_SIGMA_NOISE_LEVEL=4; 
+const double sigma_cut_gauss = 3.;
+*/
 
 /*
 struct cluster {
@@ -74,7 +74,7 @@ struct event {
 //=================================================================================================
 //============================================= FUNCTIONS =========================================
 //=================================================================================================
-
+/*
 int ChanToLadder(int nStrip) {
 	if (nStrip<0 || nStrip>n_chann){
 		return -1;
@@ -114,7 +114,7 @@ int ChanToLadderPlane (int nChan) { // return 0,1,....11
 bool SameLadderPlane(int Chan1, int Chan2) {
   return (ChanToLadderPlane(Chan1) == ChanToLadderPlane(Chan2));
 } 
-
+*/
 //GET THE MEAN OVER 1000 EVENTS
 float GetMean( int * channel, float inf, float sup){
 	float sum=0;
@@ -197,7 +197,7 @@ double GetCleanedSigma(TH1F *h) {
         double y=h->GetBinContent(ib);
            
         if(x<=MIN_SIGMA_CHANNEL_OFF||x>=MAX_SIGMA_CHANNEL_OFF) continue; // dead channels or noisy channel. Go ahead.
-        if(x>xmax+MAX_NOISE_LEVEL) break; // you have gone too far. The first 'structure' is the one you are interested in
+        if(x>xmax+MAX_SIGMA_NOISE_LEVEL) break; // you have gone too far. The first 'structure' is the one you are interested in
         if(y>max) { // update max infos
             max=y;
             xmax=x;
@@ -282,7 +282,7 @@ void Langau(TH1F *histo[6], double langau_MPV[6], double langau_sigma[6]){
 	return;
 }
 
-void N_seed(int * ADC, float * mean_2, float * comnoise_real2, float * sigma_3, float significance, int *count/*, int * deadchannel*/){
+void N_seed(int * ADC, float * mean_2, float * comnoise_real2, double * sigma_3, float significance, int *count/*, int * deadchannel*/){
 	for (int w = 0; w < 6; ++w){
 		count[w] = 0;
 	}
@@ -658,17 +658,17 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	float sigma_1[n_chann]; // sigma of the channels !
 	float mean_2[n_chann]; // mean of the channels in +/- 3 sigma !
 	float sigma_2[n_chann]; // sigma of the channels in +/- 3 sigma !
-	float sigma_3[n_chann]; // sigma after comnoise subtraction !
+	double sigma_3[n_chann]; // sigma after comnoise subtraction !
 	float * comnoise_real[n_ev]; // 1000 pointers to the comnoise array  !
 	float * comnoise_real2[n_VA]; // 72 pointers to the comnoise array  !
 	float * max[n_steps]; // max per step
-	float * clearchann[n_ev];
-	float * clearchann2[n_ev];
+	double * clearchann[n_ev];
+	double * clearchann2[n_ev];
 	float mean_final[n_chann];
 	float sigma_final[n_chann];
 	float non_gauss[n_chann];
-	float clearchanntot[n_chann];
-	float clearchanntot2[n_chann];
+	double clearchanntot[n_chann];
+	double clearchanntot2[n_chann];
 	int MASK[n_chann];
 	for(int i=0; i<n_chann; i++){
 		if(int(i*6/n_chann)==0) MASK[i]=3;
@@ -679,8 +679,8 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		if(int(i*6/n_chann)==5) MASK[i]=10;
 	}
 
-	for(int j=0; j<n_ev; ++j) { clearchann[j] = new float[n_chann];} 
-	for(int j=0; j<n_ev; ++j) { clearchann2[j] = new float[n_chann];} 
+	for(int j=0; j<n_ev; ++j) { clearchann[j] = new double[n_chann];} 
+	for(int j=0; j<n_ev; ++j) { clearchann2[j] = new double[n_chann];} 
 	for (int s=0; s<n_steps; ++s){ max[s] = new float[n_VA];} // initialize the max
 	for(int i=0; i<n_chann; ++i) { ADC[i] = new int[n_ev];} // initialize ADC one way
 	for(int j=0; j<n_ev; j++){ADC2[j] = new int[n_chann];} // initialize ADC other way

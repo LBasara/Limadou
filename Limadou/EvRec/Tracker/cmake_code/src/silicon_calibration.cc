@@ -1364,12 +1364,10 @@ void track_reconstruction(std::string namefile){
 
 
 
-
+/*
 void analysis_ondata(std::string namefile,std::string outputname){
   gROOT->Reset();
   gDirectory->GetList()->Delete();
-  /*
-  */
   //Opening data File
   TFile *input=TFile::Open(namefile.c_str());
   TTree *tree=(TTree*)input->Get("T");
@@ -1567,8 +1565,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
     counts_clean[iev]=new double[NCHAN];
 
   }
-  /*
-  */
+
   short *data[NCHAN];
   for(int ichan=0;ichan<NCHAN;++ichan)
     data[ichan]=new short[NCALIBEVENTS];
@@ -1698,9 +1695,7 @@ for(int iev=0;iev<NCALIBEVENTS;++iev)
        }
      }
     
- 
-    /*
-     */
+
     std::vector< event > clev; // clever OR clean event 
     //std::cout<<"Check"<<std::endl;
     for(int iev=0;iev<NCALIBEVENTS;++iev){
@@ -1720,9 +1715,7 @@ for(int iev=0;iev<NCALIBEVENTS;++iev)
 	myevent.cls.push_back(clusters->at(ev));
       }
       clev.push_back(myevent);
-      
-      /*
-      */
+    
     }
     storage.push_back(clev);
     //}
@@ -2003,7 +1996,7 @@ for(int iev=0;iev<NCALIBEVENTS;++iev)
   sign_frac_sum_histo->Write();
   sign_frac_m1_histo->Write();
   sign_frac_p1_histo->Write();
-  */
+  //
   std::stringstream Stream2;
   std::stringstream Stream2_open;
   std::stringstream Stream2_close;
@@ -2120,9 +2113,9 @@ for(int iev=0;iev<NCALIBEVENTS;++iev)
   out->Print(Stream4_close.str().c_str());
 
   
-  
-  }
 
+  }
+*/
 void run1(){
   analysis("./Servo-OFF/Run-20161112/20161112-112421-Run_3C_37MeV_SERVO_EASIROC2.root","output_cal.txt","./run_22_12/30MeV");
   analysis("./Servo-OFF/Run-20161112/RUN_3C_51MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/50MeV");

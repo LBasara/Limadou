@@ -12,7 +12,7 @@ int main(int argc,char *argv[]){
   }
     int who=atoi(argv[1]);
   if(who==1){
-    
+  /*  
   analysis_ondata("/home/ester/limadou/protons_workdirectory/Servo-OFF/Run-20161112/20161112-112421-Run_3C_37MeV_SERVO_EASIROC2.root","../first_test/30MeV_ondata");
   analysis_ondata("/home/ester/limadou/protons_workdirectory/Servo-OFF/Run-20161112/RUN_3C_51MeV_SERVO_EASIROC2_HOT.root","../first_test/50MeV_ondata");
   analysis_ondata("/home/ester/limadou/protons_workdirectory/Servo-OFF/Run-20161111/RUN_POS4XC_70MeV_EASIROC2_TrigMask0_SERVO_HOT.root","../first_test/70MeV_ondata");
@@ -28,6 +28,7 @@ int main(int argc,char *argv[]){
 
     
     //std::cout<<"It works!!!"<<std::endl;
+*/
   }
   else if(who==2){
 
