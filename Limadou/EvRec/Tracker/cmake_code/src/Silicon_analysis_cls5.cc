@@ -1,4 +1,4 @@
-#include "LEvent.hh"
+#include "LEvRec0.hh"
 #include "LTrackerCluster.hh"
 #include "LTrackerTools.hh"
 
@@ -32,6 +32,8 @@
 #include <string>
 #include "string.h"
 
+using namespace std;
+
 
 const int n_chann = 4608; //number of channels 
 int n_steps = 0; // number of steps of 1000 events
@@ -54,7 +56,7 @@ const double gaussian_threshold = 3.;
 //=================================================================================================
 
 
-
+/*
 struct cluster {
   int seed;
   int goodorbad=0;
@@ -63,7 +65,7 @@ struct cluster {
   double sigma[5];
   double sign[5];
 };
-
+*/
 struct event {
   int entry;
   std::vector<LTrackerCluster> cls;
@@ -901,11 +903,12 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    for(int iev=0;iev<n_ev;++iev){
 	    	event myevent;
 	    	myevent.entry = s*n_ev+iev;
-	    	std::vector<LTrackerCluster> *clusters=GetClusters(clearchann[iev][ichan],sigma_3);
-      		//std::cout<<"Check. Event N "<<iev<<" Package "<<ipk<<std::endl;
-			myevent.cls.push_back(clusters->at(ev));
-      	}
-        if(myevent.cls.size()>0) clev.push_back(myevent);
+	    	std::vector<LTrackerCluster> *clusters=GetClusters(clearchann[iev],sigma_3);
+	    	for(int ev=0;ev<clusters->size();++ev){
+				myevent.cls.push_back(clusters->at(ev));
+			}
+			
+        	if(myevent.cls.size()>0) clev.push_back(myevent);
 	    	/*
 	    	//myevent.entry = event_index;
 	    	for(int ichan=0;ichan<n_chann;++ichan){
@@ -1002,7 +1005,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 
 	    for(int i=0; i<int(clev.size()); ++i){
 	    	for(int h=0; h<int(clev.at(i).cls.size()); ++h){
-    			cluster mycl = clev.at(i).cls.at(h);
+    			LTrackerCluster mycl = clev.at(i).cls.at(h);
     			int side = 0;
     			if(mycl.seed%(n_chann/6)>383) side = 1;
 	    		h_good_events->Fill(mycl.seed);
@@ -1010,20 +1013,20 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    		h_correlation_plus_minus->Fill(mycl.count[1],mycl.count[3]);
 	    		h_correlation_minus->Fill(mycl.count[2],mycl.count[1]);
 	    		h_correlation_plus->Fill(mycl.count[2],mycl.count[3]);
-	    		h_correlation_sign->Fill(mycl.sign[2], sqrt(pow(mycl.sign[1],2)+pow(mycl.sign[3],2)));
-	    		h_correlation_sign_plus_minus->Fill(mycl.sign[1],mycl.sign[3]);
-	    		h_correlation_sign_minus->Fill(mycl.sign[2], mycl.sign[1]);
-				h_correlation_sign_plus->Fill(mycl.sign[2], mycl.sign[3]);
+	    		h_correlation_sign->Fill(mycl.sn[2], sqrt(pow(mycl.sn[1],2)+pow(mycl.sn[3],2)));
+	    		h_correlation_sign_plus_minus->Fill(mycl.sn[1],mycl.sn[3]);
+	    		h_correlation_sign_minus->Fill(mycl.sn[2], mycl.sn[1]);
+				h_correlation_sign_plus->Fill(mycl.sn[2], mycl.sn[3]);
 				h_countseed[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2]);
-				h_signseed[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2]);	
+				h_signseed[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2]);	
 				//h_sumcontcluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[1]+mycl.count[2]+mycl.count[3]);
-				h_sumsigncluster[side][int(mycl.seed*6/n_chann)]->Fill(sqrt(pow(mycl.sign[1],2)+pow(mycl.sign[2],2)+pow(mycl.sign[3],2)));
+				h_sumsigncluster[side][int(mycl.seed*6/n_chann)]->Fill(sqrt(pow(mycl.sn[1],2)+pow(mycl.sn[2],2)+pow(mycl.sn[3],2)));
 				h_ratiocontcluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2],(mycl.count[1]+mycl.count[3])/mycl.count[2]);
 				h_ratiocontcluster_minus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2],mycl.count[1]/mycl.count[2]);
 				h_ratiocontcluster_plus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2],mycl.count[3]/mycl.count[2]);
-				h_ratiosigncluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2],sqrt(pow(mycl.sign[1],2)+pow(mycl.sign[3],2))/mycl.sign[2]);
-				h_ratiosigncluster_minus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2],mycl.sign[1]/mycl.sign[2]);
-				h_ratiosigncluster_plus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2],mycl.sign[3]/mycl.sign[2]);
+				h_ratiosigncluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2],sqrt(pow(mycl.sn[1],2)+pow(mycl.sn[3],2))/mycl.sn[2]);
+				h_ratiosigncluster_minus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2],mycl.sn[1]/mycl.sn[2]);
+				h_ratiosigncluster_plus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2],mycl.sn[3]/mycl.sn[2]);
 				
 				double barycenter=0.;
 				double barycenter_abs=0.;
@@ -1031,16 +1034,20 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 				double sum_count_bar=0.;
 				double eta = -999.;
 				for (int l=0; l<5; l++){
-					if (mycl.sign[l]>3.){
+					if (mycl.sn[l]>3.){
 						barycenter += l*mycl.count[l];
 						barycenter_abs += (l+mycl.seed)*mycl.count[l];
 						sum_count_bar += mycl.count[l];
 						counter_bar++;
 					}
 				}
+				//new eta method!!
+				eta = mycl.GetEta();
+				/*
 				if(mycl.goodorbad==0){
 					eta = ( mycl.count[1]>mycl.count[3] ? (mycl.count[2]-mycl.count[1])/(mycl.count[2]+mycl.count[1]) : (mycl.count[3]-mycl.count[2])/(mycl.count[3]+mycl.count[2]));
 				}
+				*/
 				h_clustersize[side][int(mycl.seed*6/n_chann)]->Fill(counter_bar);
 				h_sumcontcluster_uncorrected[side][int(mycl.seed*6/n_chann)]->Fill(sum_count_bar);
 				h_sumcontcluster[side][int(mycl.seed*6/n_chann)]->Fill(sum_count_bar*Correction_1(eta,p0_read[side][int(mycl.seed*6/n_chann)],p1_read[side][int(mycl.seed*6/n_chann)],p2_read[side][int(mycl.seed*6/n_chann)]));
