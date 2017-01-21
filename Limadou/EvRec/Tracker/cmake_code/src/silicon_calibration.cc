@@ -1364,8 +1364,6 @@ void track_reconstruction(std::string namefile){
 
 
 
-
-
 void run1(){
   analysis("./Servo-OFF/Run-20161112/20161112-112421-Run_3C_37MeV_SERVO_EASIROC2.root","output_cal.txt","./run_22_12/30MeV");
   analysis("./Servo-OFF/Run-20161112/RUN_3C_51MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/50MeV");

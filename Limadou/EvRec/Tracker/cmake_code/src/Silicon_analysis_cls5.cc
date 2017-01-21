@@ -1,3 +1,8 @@
+#include "LEvRec0.hh"
+#include "LTrackerCluster.hh"
+#include "LTrackerTools.hh"
+#include "Silicon_analysis_cls5.hh"
+
 #include <iostream>
 #include "TFile.h"
 #include "TLatex.h"
@@ -28,29 +33,30 @@
 #include <string>
 #include "string.h"
 
-
-const int n_chann = 4608; //number of channels 
-int n_steps = 0; // number of steps of 1000 events
-const int n_ev = 1000; //number of events per step
-const int VA_chan = 64; // number of channel in a VA
-const int n_VA = 72; // total number of VA
-const int ADC_CHAN = 3*VA_chan;
-const int LADDER_CHAN = 4*ADC_CHAN;
-const double sigmarange = 1.5;
-const double MIN_NCHANSPERBIN_4CN=5;
-const double MIN_SIGMA_CHANNEL_OFF=6;
-const double MAX_SIGMA_CHANNEL_OFF=30;
-const double MAX_NOISE_LEVEL=4; 
-const double sigma_cut=6.5;
-const double gaussian_threshold = 3.;
+using namespace std;
 
 
 //=================================================================================================
 //============================================= STRUCTURE =========================================
 //=================================================================================================
 
+/*
+const int n_chann = 4608; //number of channels 
+const int n_steps = 1; // number of steps of 1000 events
+int n_ev = 0; //number of events per step, default value. I assign it later in the code
+const int VA_chan = 64; // number of channel in a VA
+const int n_VA = 72; // total number of VA
+const int ADC_CHAN = 4*VA_chan;
+const int LADDER_CHAN = 3*ADC_CHAN;
+const double sigmarange = 1.5;
+const double MIN_NCHANSPERBIN_4CN=5;
+const double MIN_SIGMA_CHANNEL_OFF=6;
+const double MAX_SIGMA_CHANNEL_OFF=30;
+const double MAX_SIGMA_NOISE_LEVEL=4; 
+const double sigma_cut_gauss = 3.;
+*/
 
-
+/*
 struct cluster {
   int seed;
   int goodorbad=0;
@@ -59,16 +65,16 @@ struct cluster {
   double sigma[5];
   double sign[5];
 };
-
+*/
 struct event {
   int entry;
-  std::vector<cluster> cls;
+  std::vector<LTrackerCluster> cls;
 }; 
 
 //=================================================================================================
 //============================================= FUNCTIONS =========================================
 //=================================================================================================
-
+/*
 int ChanToLadder(int nStrip) {
 	if (nStrip<0 || nStrip>n_chann){
 		return -1;
@@ -108,7 +114,7 @@ int ChanToLadderPlane (int nChan) { // return 0,1,....11
 bool SameLadderPlane(int Chan1, int Chan2) {
   return (ChanToLadderPlane(Chan1) == ChanToLadderPlane(Chan2));
 } 
-
+*/
 //GET THE MEAN OVER 1000 EVENTS
 float GetMean( int * channel, float inf, float sup){
 	float sum=0;
@@ -191,7 +197,7 @@ double GetCleanedSigma(TH1F *h) {
         double y=h->GetBinContent(ib);
            
         if(x<=MIN_SIGMA_CHANNEL_OFF||x>=MAX_SIGMA_CHANNEL_OFF) continue; // dead channels or noisy channel. Go ahead.
-        if(x>xmax+MAX_NOISE_LEVEL) break; // you have gone too far. The first 'structure' is the one you are interested in
+        if(x>xmax+MAX_SIGMA_NOISE_LEVEL) break; // you have gone too far. The first 'structure' is the one you are interested in
         if(y>max) { // update max infos
             max=y;
             xmax=x;
@@ -276,7 +282,7 @@ void Langau(TH1F *histo[6], double langau_MPV[6], double langau_sigma[6]){
 	return;
 }
 
-void N_seed(int * ADC, float * mean_2, float * comnoise_real2, float * sigma_3, float significance, int *count/*, int * deadchannel*/){
+void N_seed(int * ADC, float * mean_2, float * comnoise_real2, double * sigma_3, float significance, int *count/*, int * deadchannel*/){
 	for (int w = 0; w < 6; ++w){
 		count[w] = 0;
 	}
@@ -652,17 +658,17 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	float sigma_1[n_chann]; // sigma of the channels !
 	float mean_2[n_chann]; // mean of the channels in +/- 3 sigma !
 	float sigma_2[n_chann]; // sigma of the channels in +/- 3 sigma !
-	float sigma_3[n_chann]; // sigma after comnoise subtraction !
+	double sigma_3[n_chann]; // sigma after comnoise subtraction !
 	float * comnoise_real[n_ev]; // 1000 pointers to the comnoise array  !
 	float * comnoise_real2[n_VA]; // 72 pointers to the comnoise array  !
 	float * max[n_steps]; // max per step
-	float * clearchann[n_chann];
-	float * clearchann2[n_chann];
+	double * clearchann[n_ev];
+	double * clearchann2[n_ev];
 	float mean_final[n_chann];
 	float sigma_final[n_chann];
 	float non_gauss[n_chann];
-	float clearchanntot[n_chann];
-	float clearchanntot2[n_chann];
+	double clearchanntot[n_chann];
+	double clearchanntot2[n_chann];
 	int MASK[n_chann];
 	for(int i=0; i<n_chann; i++){
 		if(int(i*6/n_chann)==0) MASK[i]=3;
@@ -673,8 +679,8 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		if(int(i*6/n_chann)==5) MASK[i]=10;
 	}
 
-	for(int i=0; i<n_chann; ++i) { clearchann[i] = new float[n_ev];} 
-	for(int i=0; i<n_chann; ++i) { clearchann2[i] = new float[n_ev];} 
+	for(int j=0; j<n_ev; ++j) { clearchann[j] = new double[n_chann];} 
+	for(int j=0; j<n_ev; ++j) { clearchann2[j] = new double[n_chann];} 
 	for (int s=0; s<n_steps; ++s){ max[s] = new float[n_VA];} // initialize the max
 	for(int i=0; i<n_chann; ++i) { ADC[i] = new int[n_ev];} // initialize ADC one way
 	for(int j=0; j<n_ev; j++){ADC2[j] = new int[n_chann];} // initialize ADC other way
@@ -868,10 +874,10 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 				//if(deadchannel[ichan]!=0) continue;
 				h_ADC_tot->Fill(ichan,ADC[ichan][iev]); //<---------- With this lines the processing time increases a lot(x3)
 				h_ADC_mean_tot->Fill(ichan,ADC[ichan][iev]-mean_2[ichan]);//<---------- With this lines the processing time increases a lot(x3)
-				clearchann[ichan][iev]=ADC[ichan][iev]-mean_2[ichan]-comnoise_real[iev][int(ichan/VA_chan)];
-				clearchann2[ichan][iev]=ADC[ichan][iev]-mean_2[ichan];
-				h_count->Fill(ichan, clearchann[ichan][iev]);
-				signif = clearchann[ichan][iev]/sigma_3[ichan];//<---------- With this lines the processing time increases a lot(x3)
+				clearchann[iev][ichan]=ADC[ichan][iev]-mean_2[ichan]-comnoise_real[iev][int(ichan/VA_chan)];
+				clearchann2[iev][ichan]=ADC[ichan][iev]-mean_2[ichan];
+				h_count->Fill(ichan, clearchann[iev][ichan]);
+				signif = clearchann[iev][ichan]/sigma_3[ichan];//<---------- With this lines the processing time increases a lot(x3)
 				h_sign->Fill(ichan, signif);//<---------- With this lines the processing time increases a lot (x3)
 			}
 		}
@@ -882,14 +888,14 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 					//std::cout<< truechann<<" "<< truechann+ADC_CHAN << std::endl;
 					int side = 0;
 	    			if((truechann)%(n_chann/6)>383) side = 1;
-					h_correlation_adc[side][int(truechann*6/n_chann)]->Fill(clearchann[truechann][iev],clearchann[truechann+ADC_CHAN][iev]);
+					h_correlation_adc[side][int(truechann*6/n_chann)]->Fill(clearchann[iev][truechann],clearchann[iev][truechann+ADC_CHAN]);
 				}
 			}
 		}
 		for(int iev=0; iev<n_ev; ++iev){
 			for(int n_adc=0; n_adc<24; n_adc++){
 				int truechann = n_adc*ADC_CHAN;
-				h_corr_adc1chan[n_adc]->Fill(clearchann[0][iev],clearchann[truechann][iev]);
+				h_corr_adc1chan[n_adc]->Fill(clearchann[iev][0],clearchann[iev][truechann]);
 			}
 		}
 		//_____________________ROBERTO CODE__________________________
@@ -897,6 +903,13 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    for(int iev=0;iev<n_ev;++iev){
 	    	event myevent;
 	    	myevent.entry = s*n_ev+iev;
+	    	std::vector<LTrackerCluster> *clusters=GetClusters(clearchann[iev],sigma_3);
+	    	for(int ev=0;ev<clusters->size();++ev){
+				myevent.cls.push_back(clusters->at(ev));
+			}
+			
+        	if(myevent.cls.size()>0) clev.push_back(myevent);
+	    	/*
 	    	//myevent.entry = event_index;
 	    	for(int ichan=0;ichan<n_chann;++ichan){
 	    		//if(deadchannel[ichan]!=0) continue;
@@ -953,7 +966,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 				    }
 				    else if(abs(maxind-max2ind)==1) seed = maxind+ichan;
 				    else seed=(max2ind < maxind ? max2ind+ichan : maxind+ichan); 
-				    */
+				    
 
 				    seed = maxind + ichan;
 
@@ -969,7 +982,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		    				mycluster.sign[iii] = 0.;
 		    				mycluster.sigma[iii] = 0.;
 		    			}
-		    			*/
+		    			
 		    			//else{
 		    				mycluster.count[iii] = ( SameLP_FLAG ? clearchann[cchan][iev] : 0.); //window_count.at(cchan) : 0.);
 		    				mycluster.sign[iii] = ( SameLP_FLAG ? clearchann[cchan][iev]/sigma_3[cchan] : 0.); //window_sign.at(cchan) : 0.);
@@ -983,14 +996,16 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    		}
 	      	}
 			
-			calib.close();
+			
 	      	if(myevent.cls.size()>0) clev.push_back(myevent);
+	      	*/
 	    }
+	    calib.close();
 		//________________________.:End Roberto Code:._______________________________
 
 	    for(int i=0; i<int(clev.size()); ++i){
 	    	for(int h=0; h<int(clev.at(i).cls.size()); ++h){
-    			cluster mycl = clev.at(i).cls.at(h);
+    			LTrackerCluster mycl = clev.at(i).cls.at(h);
     			int side = 0;
     			if(mycl.seed%(n_chann/6)>383) side = 1;
 	    		h_good_events->Fill(mycl.seed);
@@ -998,20 +1013,20 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    		h_correlation_plus_minus->Fill(mycl.count[1],mycl.count[3]);
 	    		h_correlation_minus->Fill(mycl.count[2],mycl.count[1]);
 	    		h_correlation_plus->Fill(mycl.count[2],mycl.count[3]);
-	    		h_correlation_sign->Fill(mycl.sign[2], sqrt(pow(mycl.sign[1],2)+pow(mycl.sign[3],2)));
-	    		h_correlation_sign_plus_minus->Fill(mycl.sign[1],mycl.sign[3]);
-	    		h_correlation_sign_minus->Fill(mycl.sign[2], mycl.sign[1]);
-				h_correlation_sign_plus->Fill(mycl.sign[2], mycl.sign[3]);
+	    		h_correlation_sign->Fill(mycl.sn[2], sqrt(pow(mycl.sn[1],2)+pow(mycl.sn[3],2)));
+	    		h_correlation_sign_plus_minus->Fill(mycl.sn[1],mycl.sn[3]);
+	    		h_correlation_sign_minus->Fill(mycl.sn[2], mycl.sn[1]);
+				h_correlation_sign_plus->Fill(mycl.sn[2], mycl.sn[3]);
 				h_countseed[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2]);
-				h_signseed[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2]);	
+				h_signseed[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2]);	
 				//h_sumcontcluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[1]+mycl.count[2]+mycl.count[3]);
-				h_sumsigncluster[side][int(mycl.seed*6/n_chann)]->Fill(sqrt(pow(mycl.sign[1],2)+pow(mycl.sign[2],2)+pow(mycl.sign[3],2)));
+				h_sumsigncluster[side][int(mycl.seed*6/n_chann)]->Fill(sqrt(pow(mycl.sn[1],2)+pow(mycl.sn[2],2)+pow(mycl.sn[3],2)));
 				h_ratiocontcluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2],(mycl.count[1]+mycl.count[3])/mycl.count[2]);
 				h_ratiocontcluster_minus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2],mycl.count[1]/mycl.count[2]);
 				h_ratiocontcluster_plus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.count[2],mycl.count[3]/mycl.count[2]);
-				h_ratiosigncluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2],sqrt(pow(mycl.sign[1],2)+pow(mycl.sign[3],2))/mycl.sign[2]);
-				h_ratiosigncluster_minus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2],mycl.sign[1]/mycl.sign[2]);
-				h_ratiosigncluster_plus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sign[2],mycl.sign[3]/mycl.sign[2]);
+				h_ratiosigncluster[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2],sqrt(pow(mycl.sn[1],2)+pow(mycl.sn[3],2))/mycl.sn[2]);
+				h_ratiosigncluster_minus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2],mycl.sn[1]/mycl.sn[2]);
+				h_ratiosigncluster_plus[side][int(mycl.seed*6/n_chann)]->Fill(mycl.sn[2],mycl.sn[3]/mycl.sn[2]);
 				
 				double barycenter=0.;
 				double barycenter_abs=0.;
@@ -1019,16 +1034,20 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 				double sum_count_bar=0.;
 				double eta = -999.;
 				for (int l=0; l<5; l++){
-					if (mycl.sign[l]>3.){
+					if (mycl.sn[l]>3.){
 						barycenter += l*mycl.count[l];
 						barycenter_abs += (l+mycl.seed)*mycl.count[l];
 						sum_count_bar += mycl.count[l];
 						counter_bar++;
 					}
 				}
+				//new eta method!!
+				eta = mycl.GetEta();
+				/*
 				if(mycl.goodorbad==0){
 					eta = ( mycl.count[1]>mycl.count[3] ? (mycl.count[2]-mycl.count[1])/(mycl.count[2]+mycl.count[1]) : (mycl.count[3]-mycl.count[2])/(mycl.count[3]+mycl.count[2]));
 				}
+				*/
 				h_clustersize[side][int(mycl.seed*6/n_chann)]->Fill(counter_bar);
 				h_sumcontcluster_uncorrected[side][int(mycl.seed*6/n_chann)]->Fill(sum_count_bar);
 				h_sumcontcluster[side][int(mycl.seed*6/n_chann)]->Fill(sum_count_bar*Correction_1(eta,p0_read[side][int(mycl.seed*6/n_chann)],p1_read[side][int(mycl.seed*6/n_chann)],p2_read[side][int(mycl.seed*6/n_chann)]));
@@ -1059,12 +1078,12 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 
 		for(int iev=0; iev<n_ev; iev++){
 			for(int i=0; i<n_chann; i++){
-				clearchanntot2[i]+=clearchann2[i][iev];
+				clearchanntot2[i]+=clearchann2[iev][i];
 			}
 		}
 		for(int iev=0; iev<n_ev; iev++){
 			for(int i=0; i<n_chann; i++){
-				clearchanntot[i]+=clearchann[i][iev];
+				clearchanntot[i]+=clearchann[iev][i];
 			}
 		}
 
