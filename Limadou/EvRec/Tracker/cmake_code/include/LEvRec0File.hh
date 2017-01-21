@@ -14,7 +14,8 @@ public:
   // bool GetEntry(int iEntry, LEvRec0 &event); // for future... NO ROOT!
   int GetEntry(int iEntry);
   int GetEntries();
- ~LEvRec0File();
+  void Close();
+  ~LEvRec0File();
   
 private:
   TFile *inputCalib;

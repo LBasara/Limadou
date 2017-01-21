@@ -40,7 +40,19 @@ int LEvRec0File::GetEntries() {
   return treeCalib->GetEntries();
 }
 
+void LEvRec0File::Close() {
+  if(inputCalib) {
+    treeCalib=0;
+    inputCalib->Close();
+  }
+  return;
+}
+
+
 
 LEvRec0File::~LEvRec0File() {
-  if(inputCalib) inputCalib->Close();
+  if(inputCalib) {
+    treeCalib=0;
+    inputCalib->Close();
+  }
 }
