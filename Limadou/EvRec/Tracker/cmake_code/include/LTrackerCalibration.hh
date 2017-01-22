@@ -1,6 +1,10 @@
 #ifndef __LTRACKERCALIBRATION__
 #define __LTRACKERCALIBRATION__ 1
 
+#include "LTrackerCalibrationSlot.hh"
+#include <vector>
+
+
 class LTrackerCalibration {
 public:
   inline LTrackerCalibration(){;};
@@ -17,19 +21,6 @@ private:
   
 };
 
-
-class LTrackerCalibrationSlot {
-public:
-  LTrackerCalibrationSlot(int StartE, int StopE, double *ped, double *sig, double *ngi);;
-  
-private:
-  // Calib infos
-  int StartEvent;
-  int StopEvent;
-  double pedestal[NCHAN];
-  double sigma[NCHAN];
-  double ngindex[NCHAN];
-};
 
 #endif
 

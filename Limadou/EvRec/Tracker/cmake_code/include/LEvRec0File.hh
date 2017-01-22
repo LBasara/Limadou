@@ -15,6 +15,7 @@ public:
   int GetEntry(int iEntry);
   int GetEntries();
   void Close();
+  inline bool IsOpen() {return inputCalib->IsOpen();}
   ~LEvRec0File();
   
 private:

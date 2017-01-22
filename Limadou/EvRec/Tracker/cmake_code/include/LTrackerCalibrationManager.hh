@@ -2,6 +2,7 @@
 #define __LTRACKERCALIBRATIONMANAGER__ 1
 
 #include "LTrackerCalibration.hh"
+#include "LEvRec0File.hh"
 
 const double CHANCLEANINGTHRESHOLD=3.;
 const double MINSIGMA1=0.;
@@ -17,25 +18,33 @@ class LTrackerCalibrationManager {
 
 public:
   static LTrackerCalibrationManager& GetInstance();
- 
-  int LoadRun(char *fileInp);
-  LTrackerCalibration* Calibrate(int nEvents=-1, int skipEvents=-1);
-  int SaveCalibration(char *fileOut);
-
-  LTrackerCalibration* LoadCalibration(char *fileInp); // for future: Load tracker calibration from a total calibration
-  LTrackerCalibration* LoadTrackerCalibration(char *fileInp);
   
-
+  int LoadRun(const char *fileInp);
+  LTrackerCalibration* Calibrate(const int nEvents=-1, const int skipEvents=-1);
+  int SaveCalibration(const char *fileOut);
+  
+  LTrackerCalibration* LoadCalibration(const char *fileInp) {return 0;}; // for future: Load tracker calibration from a total calibration
+  inline LTrackerCalibration* LoadTrackerCalibration(const char *fileInp){return 0;};
+  
+  
 private:
-  char *calRunFileName;
+  LEvRec0File *calRunFile;
   LTrackerCalibrationManager();
+  
   // CalibrationSlots
-  int CalculateCalibrationSlots(int nEvents, int skipEvents, int nEntries,
+  int CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries,
 			    int *pivot);
-  LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, int StopEntry);
-  void ComputeCNMask(double *sigma1, double &CN_mask) {
-  void ComputeCN(double *counts, double *pedestal, bool *CN_mask, double &CN);
+  LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
+  void RawMeanSigma(const int StartEntry, const int StopEntry, double *mean0, double *sigma0);
+  void CleanedMeanSigma(const int StartEntry, const int StopEntry, const double *mean0, const double *sigma0, double *mean1, double *sigma1);
+  void ComputeCNMask(const double *sigma1, bool *CN_mask);
+  void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN);
+  void CNCorrectedSigma(const int StartEntry, const int StopEntry, const double *mean1, const double *sigma1, const bool *CN_mask, double *mean2, double *sigma2);
+  void GaussianityIndex(const int StartEntry, const int StopEntry, const double *mean2, const double *sigma2, const bool *CN_mask, double *ngindex);
 
+  LTrackerCalibration* CreateTrackerCalibration();
+  
+  ~LTrackerCalibrationManager();
   
 
 
@@ -45,8 +54,8 @@ private:
   // We can use the better technique of deleting the methods
   // we don't want.
 public:
-  LTrackerCalibrationManager(LTrackerCalibrationManager const&)               = delete;
-  void operator=(LTrackerCalibrationManager const&)  = delete;
+  LTrackerCalibrationManager(LTrackerCalibrationManager const&) = delete;
+  void operator=(LTrackerCalibrationManager const&) = delete;
 
 };
 
