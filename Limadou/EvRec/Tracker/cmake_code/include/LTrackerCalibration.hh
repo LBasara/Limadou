@@ -18,6 +18,7 @@ public:
   inline double* GetPedestal(const int nSlot){return calarray.at(nSlot).GetPedestal();};
   inline double* GetSigma(const int nSlot){return calarray.at(nSlot).GetSigma();};
   inline double* GetNGIndex(const int nSlot){return calarray.at(nSlot).GetNGIndex();};
+  inline bool* GetCNMask(const int nSlot){return calarray.at(nSlot).GetCNMask();};
   
 private:
   // Calib infos

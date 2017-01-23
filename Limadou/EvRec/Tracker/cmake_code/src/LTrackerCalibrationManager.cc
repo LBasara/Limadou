@@ -119,7 +119,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot(const int Sta
   int StopEvent=static_cast<int>(cev.event_index);
 
   // Result
-  LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot(StartEvent, StopEvent, mean2, sigma2, ngindex);
+  LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot(StartEvent, StopEvent, mean2, sigma2, ngindex, CN_mask);
   return result;
 }
 
