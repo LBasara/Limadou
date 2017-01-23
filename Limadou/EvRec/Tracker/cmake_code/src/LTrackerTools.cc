@@ -3,7 +3,7 @@
 #include "LTrackerCluster.hh"
 #include <algorithm>
 #include <math.h>
-
+#include <iostream>
 
 int ChanToLadder(int nStrip) {
   if(nStrip<0 || nStrip>=NCHAN)
@@ -106,3 +106,28 @@ std::vector<LTrackerCluster>* GetClusters(double* cont, double *sigma) {
 
   return result;
 }
+
+
+void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN) {
+  double sumVA[N_VA];
+  int countVA[N_VA];
+  for(int iVA=0; iVA<N_VA; ++iVA) {
+    sumVA[iVA]=0.;
+    countVA[iVA]=0;
+  }
+    
+  for(int iChan=0; iChan<NCHAN; ++iChan) {
+    if(CN_mask[iChan]==false) continue;
+    int iVA=ChanToVA(iChan);
+    sumVA[iVA]+=(static_cast<double>(counts[iChan])-pedestal[iChan]);
+    ++countVA[iVA];
+  }
+
+  for(int iVA=0; iVA<N_VA; ++iVA) {
+    CN[iVA]=(sumVA[iVA]/countVA[iVA]);
+    if(countVA[iVA]==0) std::cout << "Warning! ComputeCN dividing by zero!" << std::endl;
+  }
+
+  return;
+}
+

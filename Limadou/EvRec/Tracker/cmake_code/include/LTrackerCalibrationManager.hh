@@ -36,7 +36,6 @@ private:
   void RawMeanSigma(const int StartEntry, const int StopEntry, double *mean0, double *sigma0);
   void CleanedMeanSigma(const int StartEntry, const int StopEntry, const double *mean0, const double *sigma0, double *mean1, double *sigma1);
   void ComputeCNMask(const double *sigma1, bool *CN_mask);
-  void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN);
   void CNCorrectedSigma(const int StartEntry, const int StopEntry, const double *mean1, const double *sigma1, const bool *CN_mask, double *mean2, double *sigma2);
   void GaussianityIndex(const int StartEntry, const int StopEntry, const double *mean2, const double *sigma2, const bool *CN_mask, double *ngindex);
 

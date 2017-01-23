@@ -173,33 +173,7 @@ void LTrackerCalibrationManager::ComputeCNMask(const double *sigma1, bool *CN_ma
   return;
 }
 
-
-
-void LTrackerCalibrationManager::ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN) {
-  double sumVA[N_VA];
-  int countVA[N_VA];
-  for(int iVA=0; iVA<N_VA; ++iVA) {
-    sumVA[iVA]=0.;
-    countVA[iVA]=0;
-  }
-    
-  for(int iChan=0; iChan<NCHAN; ++iChan) {
-    if(CN_mask[iChan]==false) continue;
-    int iVA=ChanToVA(iChan);
-    sumVA[iVA]+=(static_cast<double>(counts[iChan])-pedestal[iChan]);
-    ++countVA[iVA];
-  }
-
-  for(int iVA=0; iVA<N_VA; ++iVA) {
-    CN[iVA]=(sumVA[iVA]/countVA[iVA]);
-    if(countVA[iVA]==0) std::cout << "Warning! ComputeCN dividing by zero!" << std::endl;
-  }
-
-  return;
-}
-
-
-  
+ 
 void LTrackerCalibrationManager::RawMeanSigma(const int StartEntry, const int StopEntry, double *mean0, double *sigma0) {
   
   LEvRec0 cev;
