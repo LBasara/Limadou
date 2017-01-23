@@ -11,6 +11,7 @@ LTrackerCalibrationManager::LTrackerCalibrationManager() {
   calRunFile=0;
   InitialTargetRun=-1;
   FinalTargetRun=-1;
+  verboseFLAG=true;
 }
 
 
@@ -32,7 +33,7 @@ int LTrackerCalibrationManager::LoadRun(const char *fileInp) {
   }
   
   calRunFile = new LEvRec0File(fileInp);
-  if(!calRunFile || (calRunFile->IsOpen())) {
+  if(!calRunFile || !(calRunFile->IsOpen())) {
     std::cerr << "Error! Attempt to load a calibration run, but the file cannot be opened."
 	      << std::endl;
     calRunFile = 0;
@@ -61,11 +62,12 @@ LTrackerCalibration* LTrackerCalibrationManager::Calibrate(const int nEvents, co
   int nSlots = CalculateCalibrationSlots(nEvents, skipEvents, nEntries, pivot);
 
   LTrackerCalibration *result = CreateTrackerCalibration();
-  for(int is=0; is<nSlots+1; ++is) result->Add(CalibrateSlot(pivot[is],pivot[is+1]));
+  for(int is=0; is<nSlots; ++is) result->Add(CalibrateSlot(pivot[is],pivot[is+1]));
+
   return result;
 }
 
-int LTrackerCalibrationManager::CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries, int *pivot) {
+int LTrackerCalibrationManager::CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries, int* &pivot) {
   int nEv=nEvents;
   int skipEv=skipEvents;
   if(nEvents==-1) nEv=nEntries;
@@ -73,6 +75,7 @@ int LTrackerCalibrationManager::CalculateCalibrationSlots(const int nEvents, con
   const int nSlots = (nEntries-skipEv)/nEv;
   pivot = new int[nSlots+1];
   for(int is=0; is<nSlots+1; ++is) pivot[is]=skipEv+is*nEv;
+
   return nSlots;
 }
 
@@ -83,12 +86,12 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot(const int Sta
 	      << std::endl;
     return 0;
   }
-  
+
   // RawMeanSigma
   double mean0[NCHAN];
   double sigma0[NCHAN];
   RawMeanSigma(StartEntry, StopEntry, mean0, sigma0);
-
+  
   // First cleaning
   double mean1[NCHAN];
   double sigma1[NCHAN];
@@ -111,9 +114,9 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot(const int Sta
   LEvRec0 cev;
   calRunFile->SetTheEventPointer(cev);  
   calRunFile->GetEntry(StartEntry);
-  int StartEvent=cev.event_index;
+  int StartEvent=static_cast<int>(cev.event_index);
   calRunFile->GetEntry(StopEntry-1);
-  int StopEvent=cev.event_index;
+  int StopEvent=static_cast<int>(cev.event_index);
 
   // Result
   LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot(StartEvent, StopEvent, mean2, sigma2, ngindex);
@@ -131,9 +134,8 @@ void LTrackerCalibrationManager::ComputeCNMask(const double *sigma1, bool *CN_ma
       hSigma1[iVA][iBin] = 0;
   
   double xBin[NSIGMA1BIN+1];
-  for(int iBin=0; iBin<NSIGMA1BIN; ++iBin)
-    xBin[iBin]=MINSIGMA1+(MAXSIGMA1-MINSIGMA1)*iBin;
-  
+  for(int iBin=0; iBin<NSIGMA1BIN+1; ++iBin) xBin[iBin]=MINSIGMA1+(MAXSIGMA1-MINSIGMA1)*iBin/static_cast<double>(NSIGMA1BIN);
+
   // Fill histograms
   for(int iChan=0; iChan<NCHAN; ++iChan) {
     int iVA=ChanToVA(iChan);
@@ -144,7 +146,7 @@ void LTrackerCalibrationManager::ComputeCNMask(const double *sigma1, bool *CN_ma
       }
     }
   }
-  
+
   // Find histos' maxima
   double hMaxima[N_VA];
   for(int iVA=0; iVA<N_VA; ++iVA) {
@@ -152,7 +154,7 @@ void LTrackerCalibrationManager::ComputeCNMask(const double *sigma1, bool *CN_ma
     hMaxima[iVA]=-99999.;
     for(int iBin=0; iBin<NSIGMA1BIN; ++iBin) {
       if(hSigma1[iVA][iBin]>tmpMax) {
-	hMaxima[iVA]=xBin[iBin]+0.5*(MAXSIGMA1-MINSIGMA1);
+	hMaxima[iVA]=xBin[iBin]+0.5*(MAXSIGMA1-MINSIGMA1)/NSIGMA1BIN;
 	tmpMax=hSigma1[iVA][iBin];
       }
     }
@@ -165,6 +167,9 @@ void LTrackerCalibrationManager::ComputeCNMask(const double *sigma1, bool *CN_ma
     else CN_mask[iChan]=true;
   }  
   
+  if(verboseFLAG) {
+    std::cout << "CNmask computed" << std::endl;
+  }
   return;
 }
 
@@ -179,15 +184,17 @@ void LTrackerCalibrationManager::ComputeCN(const short *counts, const double *pe
   }
     
   for(int iChan=0; iChan<NCHAN; ++iChan) {
-    int iVA=ChanToVA(iChan);
     if(CN_mask[iChan]==false) continue;
-    sumVA[iVA]+=(counts[iChan]-pedestal[iChan]);
+    int iVA=ChanToVA(iChan);
+    sumVA[iVA]+=(static_cast<double>(counts[iChan])-pedestal[iChan]);
     ++countVA[iVA];
   }
 
   for(int iVA=0; iVA<N_VA; ++iVA) {
     CN[iVA]=(sumVA[iVA]/countVA[iVA]);
+    if(countVA[iVA]==0) std::cout << "Warning! ComputeCN dividing by zero!" << std::endl;
   }
+
   return;
 }
 
@@ -222,6 +229,7 @@ void LTrackerCalibrationManager::RawMeanSigma(const int StartEntry, const int St
     sigma0[iChan]=sqrt(sumsq0[iChan]/counter0[iChan]-mean0[iChan]*mean0[iChan]);
   }
   
+  if(verboseFLAG) std::cout << "RawMeanSigma computed" << std::endl;
   return;
 }
 
@@ -258,6 +266,7 @@ void LTrackerCalibrationManager::CleanedMeanSigma(const int StartEntry, const in
     sigma1[iChan]=sqrt(sumsq1[iChan]/counter1[iChan]-mean1[iChan]*mean1[iChan]);
   }
   
+  if(verboseFLAG) std::cout << "CleanedMeanSigma computed" << std::endl;
   return;
 }
 
@@ -286,7 +295,7 @@ void LTrackerCalibrationManager::CNCorrectedSigma(const int StartEntry, const in
       double x = static_cast<double>(cev.strip[iChan]);
       double diff = (x-mean1[iChan]);
       if(std::abs(diff)>CHANCLEANINGTHRESHOLD*sigma1[iChan]) continue;
-      double y = (x-CN[iChan]);  // CN corrected!
+      double y = (x-CN[ChanToVA(iChan)]);  // CN corrected!
       mean2[iChan]+=y;
       sumsq2[iChan]+=(y*y);
       ++counter2[iChan];
@@ -297,6 +306,7 @@ void LTrackerCalibrationManager::CNCorrectedSigma(const int StartEntry, const in
     sigma2[iChan]=sqrt(sumsq2[iChan]/counter2[iChan]-mean2[iChan]*mean2[iChan]);
   }
   
+  if(verboseFLAG) std::cout << "CNCorrectedSigma computed" << std::endl;
   return;
 }
 
@@ -318,7 +328,7 @@ void LTrackerCalibrationManager::GaussianityIndex(const int StartEntry, const in
     double CN[N_VA];
     ComputeCN(cev.strip,mean2,CN_mask,CN);
     for(int iChan=0; iChan<NCHAN; ++iChan) {
-      double x = (static_cast<double>(cev.strip[iChan])-mean2[iChan]-CN[iChan]);
+      double x = (static_cast<double>(cev.strip[iChan])-mean2[iChan]-CN[ChanToVA(iChan)]);
       if(std::abs(x)>GAUSSIANITYSIGMATHRESHOLD*sigma2[iChan]) ++ngindex[iChan];
       ++ngcounter[iChan];
     }
@@ -328,6 +338,8 @@ void LTrackerCalibrationManager::GaussianityIndex(const int StartEntry, const in
     double delta=ngindex[iChan]-outliers_expected;
     ngindex[iChan]=(delta/sqrt(outliers_expected));
   }
+
+  if(verboseFLAG) std::cout << "GaussianityIndex computed" << std::endl;
   return;
 }
 

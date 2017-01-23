@@ -23,7 +23,14 @@ LEvRec0::LEvRec0(){
 
 
 void LEvRec0::DumpStrip(void) {
-    for(int i=0; i<NCHAN;++i) std::cout << strip[i] << " ";
-    std::cout << std::endl;
-    return;
-  };
+  std::cout << "strip" << std::endl;
+  for(int i=0; i<NCHAN;++i) std::cout << strip[i] << " ";
+  std::cout << std::endl;
+  return;
+}
+
+
+void LEvRec0::DumpEventIndex() {
+  std::cout << "event_index " << event_index << std::endl;
+  return;
+}

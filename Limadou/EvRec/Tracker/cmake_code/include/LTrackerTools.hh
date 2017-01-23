@@ -6,6 +6,8 @@
 
 int ChanToLadder(int nStrip);
 int ChanToADC(int nStrip);
+int ChanToLadderADC(int nStrip);
+int ChanToADCVA(int nStrip);
 int ChanToVA(int nStrip);
 int ChanToSide(int nStrip);  // 0 p - 1 n
 int ChanToPlane(int nStrip); // 0 external - 1 internal
