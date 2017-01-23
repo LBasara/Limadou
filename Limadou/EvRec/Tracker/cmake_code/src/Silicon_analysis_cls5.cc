@@ -66,6 +66,7 @@ struct cluster {
   double sign[5];
 };
 */
+
 struct event {
   int entry;
   std::vector<LTrackerCluster> cls;
@@ -503,7 +504,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 
 	TFile * data = new TFile(root_data_file.c_str(),"READ");
 	TTree * tree = (TTree*)data->Get("T");// take the tree
-	n_steps = int(tree->GetEntries()/1000);
+	//n_steps = int(tree->GetEntries()/1000);
 
 	TH1F * h_mean_1 = new TH1F("h_mean_1","Pedestal",4608,0,4608); 
 	TH1F * h_sigma_1 = new TH1F("h_sigma_1","Sigma_raw",4608,0,4608);   

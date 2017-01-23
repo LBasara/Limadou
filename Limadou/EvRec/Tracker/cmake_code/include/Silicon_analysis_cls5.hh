@@ -1,11 +1,11 @@
-#ifndef __FRANCESCO_ANALYSIS__
-#define __FRANCESCO_ANALYSIS__ 1
+#ifndef __SILICON_ANALYSIS_CLS5__
+#define __SILICON_ANALYSIS_CLS5__ 1
 #include "TH1.h"
 
 using namespace std;
 
 const int n_chann = 4608; //number of channels 
-int n_steps = 1; // number of steps of 1000 events
+const int n_steps = 1; // number of steps of 1000 events
 const int n_ev = 1000; //number of events per step
 const int VA_chan = 64; // number of channel in a VA
 const int n_VA = 72; // total number of VA
