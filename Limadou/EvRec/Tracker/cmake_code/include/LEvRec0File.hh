@@ -14,11 +14,15 @@ public:
   // bool GetEntry(int iEntry, LEvRec0 &event); // for future... NO ROOT!
   int GetEntry(int iEntry);
   int GetEntries();
- ~LEvRec0File();
+  void Close();
+  inline bool IsOpen() {return inputCalib->IsOpen();}
+  inline int GetRunId(){return RunId;};
+  ~LEvRec0File();
   
 private:
   TFile *inputCalib;
   TTree *treeCalib;
+  int RunId;
 };
 
 

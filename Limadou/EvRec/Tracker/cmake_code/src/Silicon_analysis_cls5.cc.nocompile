@@ -905,7 +905,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    	event myevent;
 	    	myevent.entry = s*n_ev+iev;
 	    	std::vector<LTrackerCluster> *clusters=GetClusters(clearchann[iev],sigma_3);
-	    	for(int ev=0;ev<clusters->size();++ev){
+	    	for(int ev=0;ev<static_cast<int>(clusters->size());++ev){
 				myevent.cls.push_back(clusters->at(ev));
 			}
 			
