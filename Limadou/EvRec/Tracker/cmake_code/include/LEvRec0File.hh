@@ -16,11 +16,13 @@ public:
   int GetEntries();
   void Close();
   inline bool IsOpen() {return inputCalib->IsOpen();}
+  inline int GetRunId(){return RunId;};
   ~LEvRec0File();
   
 private:
   TFile *inputCalib;
   TTree *treeCalib;
+  int RunId;
 };
 
 

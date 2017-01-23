@@ -9,6 +9,8 @@
 
 LTrackerCalibrationManager::LTrackerCalibrationManager() {
   calRunFile=0;
+  InitialTargetRun=-1;
+  FinalTargetRun=-1;
 }
 
 
@@ -20,9 +22,13 @@ LTrackerCalibrationManager& LTrackerCalibrationManager::GetInstance() {
 
 
 int LTrackerCalibrationManager::LoadRun(const char *fileInp) {
+  // Reset previous loaded runs
   if(calRunFile) {
     if(calRunFile->IsOpen()) calRunFile->Close();
     calRunFile = 0;
+    // Sure we want also to reset the target runs? Today we reply yes... check
+    InitialTargetRun=-1;
+    FinalTargetRun=-1;
   }
   
   calRunFile = new LEvRec0File(fileInp);
@@ -35,6 +41,11 @@ int LTrackerCalibrationManager::LoadRun(const char *fileInp) {
   return 0;
 }
 
+void LTrackerCalibrationManager::SetTargetRuns(const int InitialRun, const int FinalRun) {
+  InitialTargetRun=InitialRun;
+  FinalTargetRun=FinalRun;
+  return;
+}
 
 LTrackerCalibration* LTrackerCalibrationManager::Calibrate(const int nEvents, const int skipEvents) {
   
@@ -335,8 +346,13 @@ LTrackerCalibration* LTrackerCalibrationManager::CreateTrackerCalibration() {
 	      << std::endl;
     return 0;
   }
-  LTrackerCalibration *result = new LTrackerCalibration();
+  int RunId = calRunFile->GetRunId();
+  
+  if(InitialTargetRun==-1 || FinalTargetRun==-1) {
+    std::cerr << "Warning! Target run interval of current calibration not defined."
+	      << std::endl;
+  }
+  LTrackerCalibration *result = new LTrackerCalibration(RunId, InitialTargetRun, FinalTargetRun);
 
   return result;
 }
-

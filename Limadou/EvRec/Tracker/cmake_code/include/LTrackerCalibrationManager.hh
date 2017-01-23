@@ -20,15 +20,13 @@ public:
   static LTrackerCalibrationManager& GetInstance();
   
   int LoadRun(const char *fileInp);
+  void SetTargetRuns(const int InitialRun, const int FinalRun=-1);
   LTrackerCalibration* Calibrate(const int nEvents=-1, const int skipEvents=-1);
-  int SaveCalibration(const char *fileOut);
-  
-  LTrackerCalibration* LoadCalibration(const char *fileInp) {return 0;}; // for future: Load tracker calibration from a total calibration
-  inline LTrackerCalibration* LoadTrackerCalibration(const char *fileInp){return 0;};
-  
   
 private:
-  LEvRec0File *calRunFile;
+  LEvRec0File *calRunFile;  // pointer to the run used for calibration
+  int InitialTargetRun;     // Run id of first target run
+  int FinalTargetRun;       // Run id of last target run
   LTrackerCalibrationManager();
   
   // CalibrationSlots
