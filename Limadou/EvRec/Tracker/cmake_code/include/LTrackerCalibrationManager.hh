@@ -43,9 +43,18 @@ private:
   LTrackerCalibration* CreateTrackerCalibration();
   
   ~LTrackerCalibrationManager();
-  
 
+  /*  
+  // C++ 03
+  // ========
+  // Dont forget to declare these two. You want to make sure they
+  // are unacceptable otherwise you may accidentally get copies of
+  // your singleton appearing.
+  LTrackerCalibrationManager(LTrackerCalibrationManager const&);              // Don't Implement
+  void operator=(LTrackerCalibrationManager const&); // Don't implement
+  */
 
+  //  /* Following implementation to bepreferred, Not yet fully compatible
 
   // C++ 11
   // =======
@@ -54,7 +63,7 @@ private:
 public:
   LTrackerCalibrationManager(LTrackerCalibrationManager const&) = delete;
   void operator=(LTrackerCalibrationManager const&) = delete;
-
+  // */
 };
 
 #endif
