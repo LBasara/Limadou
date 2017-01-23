@@ -31,7 +31,7 @@ private:
   
   // CalibrationSlots
   int CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries,
-			    int *pivot);
+				int* &pivot);
   LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
   void RawMeanSigma(const int StartEntry, const int StopEntry, double *mean0, double *sigma0);
   void CleanedMeanSigma(const int StartEntry, const int StopEntry, const double *mean0, const double *sigma0, double *mean1, double *sigma1);
@@ -43,6 +43,8 @@ private:
   LTrackerCalibration* CreateTrackerCalibration();
   
   ~LTrackerCalibrationManager();
+
+  bool verboseFLAG;
 
   /*  
   // C++ 03

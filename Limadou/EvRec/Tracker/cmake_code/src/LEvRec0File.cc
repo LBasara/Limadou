@@ -28,6 +28,7 @@ int LEvRec0File::SetTheEventPointer(LEvRec0 &ev) {
 
   treeCalib->SetBranchStatus("*",kFALSE);
   treeCalib->SetBranchStatus("strip[4608]",kTRUE);
+  treeCalib->SetBranchStatus("event_index",kTRUE);
 
   return 0;
 }

@@ -12,20 +12,28 @@ int ChanToLadder(int nStrip) {
     return nStrip/LADDER_CHAN;
 }
 
-int ChanToADC(int nStrip) {
+int ChanToLadderADC(int nStrip) {
   int nLadder = ChanToLadder(nStrip);
   int reducednStrip = nStrip - LADDER_CHAN*nLadder;
   return reducednStrip/ADC_CHAN;
 }
 
-int ChanToVA(int nStrip) {
+int ChanToADC(int nStrip) {
+  return nStrip/ADC_CHAN;
+}
+
+int ChanToADCVA(int nStrip) {
   int nADC = ChanToADC(nStrip);
   int reducednStrip = nStrip - ADC_CHAN*nADC;
   return reducednStrip/VA_CHAN;
 }
 
+int ChanToVA(int nStrip) {
+  return nStrip/VA_CHAN;
+}
+
 int ChanToSide(int nStrip) { // 0 p - 1 n
-  int nADC = ChanToADC(nStrip);
+  int nADC = ChanToLadderADC(nStrip);
   return (nADC/2)%2;
 }
 
