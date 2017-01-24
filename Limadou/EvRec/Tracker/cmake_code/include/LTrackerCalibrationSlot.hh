@@ -1,6 +1,7 @@
 #ifndef __LTRACKERCALIBRATIONSLOT__
 #define __LTRACKERCALIBRATIONSLOT__ 1
 
+#include "LTrackerMask.hh"
 #include "detector_const.hh"
 #include <fstream>
 
@@ -15,6 +16,8 @@ public:
   inline double* GetSigma(){return sigma;};
   inline double* GetNGIndex(){return ngindex;};
   inline bool* GetCNMask(){return CN_mask;};
+  LTrackerMask GetMaskOnSigma(const double sigmaMin, const double sigmaMax);
+  LTrackerMask GetMaskOnNGI(const double NGIMin, const double NGIMax);
   
 private:
   // Calib infos

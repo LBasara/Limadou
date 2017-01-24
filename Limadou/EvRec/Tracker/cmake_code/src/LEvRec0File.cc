@@ -50,6 +50,7 @@ void LEvRec0File::Close() {
   if(inputCalib) {
     treeCalib=0;
     inputCalib->Close();
+    inputCalib=0;
   }
   return;
 }

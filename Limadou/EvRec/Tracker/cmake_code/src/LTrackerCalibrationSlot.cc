@@ -30,3 +30,22 @@ LTrackerCalibrationSlot* LTrackerCalibrationSlot::Read(std::ifstream *input) {
   LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot(StartEventST, StopEventST, pedestalST, sigmaST, ngindexST, cnmST);
   return result;
 }
+
+
+LTrackerMask LTrackerCalibrationSlot::GetMaskOnSigma(const double sigmaMin, const double sigmaMax) {
+  LTrackerMask result;
+  for(int iChan=0; iChan<NCHAN; ++iChan) {
+    result[iChan] = (sigma[iChan]>=sigmaMin && sigma[iChan]<=sigmaMax);
+  }
+  return result;
+}
+
+
+LTrackerMask LTrackerCalibrationSlot::GetMaskOnNGI(const double ngiMin, const double ngiMax) {
+  LTrackerMask result;
+  for(int iChan=0; iChan<NCHAN; ++iChan) {
+    result[iChan] = (ngindex[iChan]>=ngiMin && ngindex[iChan]<=ngiMax);
+  }
+  return result;
+}
+

@@ -19,6 +19,8 @@ public:
   inline double* GetSigma(const int nSlot){return calarray.at(nSlot).GetSigma();};
   inline double* GetNGIndex(const int nSlot){return calarray.at(nSlot).GetNGIndex();};
   inline bool* GetCNMask(const int nSlot){return calarray.at(nSlot).GetCNMask();};
+  inline LTrackerMask GetMaskOnSigma(const int nSlot, const double sigmaMin, const double sigmaMax){return calarray.at(nSlot).GetMaskOnSigma(sigmaMin, sigmaMax);};
+  inline LTrackerMask GetMaskOnNGI(const int nSlot, const double ngiMin, const double ngiMax){return calarray.at(nSlot).GetMaskOnNGI(ngiMin, ngiMax);};
   
 private:
   // Calib infos
