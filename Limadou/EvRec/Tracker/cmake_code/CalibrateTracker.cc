@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
   cal->Write("ciccio.cal");
   */
 
-  /*
+  
   // Test LTrackerMask
   auto ms = cal->GetMaskOnSigma(0, 4.,6.);
   ms.Dump();
@@ -28,6 +28,6 @@ int main(int argc, char *argv[]) {
   mngi.Dump();
   auto mtot = ms&&mngi;
   mtot.Dump();
-  */
+  
   return 0;
 }
