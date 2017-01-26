@@ -13,6 +13,7 @@ class LTrackerCluster {
 public:
   LTrackerCluster();
   LTrackerCluster(int inpSeed, double *inpCont, double *inpSigma);
+  void Dump();
   int seed;
   double count[CLUSTERCHANNELS];
   double sigma[CLUSTERCHANNELS];
