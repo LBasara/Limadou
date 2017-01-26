@@ -746,8 +746,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   //display_ladders2D(sigma3_histo,"sigma_3",";chan;")->Print(Stream2.str().c_str());
   // display_ladders2D(total_counts_adc,"tot_counts",";chan;ADC")->Print(Stream2.str().c_str());
   //display_ladders2D(mean2_histo,"mean_2",";chan;ADC")->Print(Stream2.str().c_str());
-  //display_ladders2D(total_counts_mean,"total_counts_mean",";chan;")->Print(Stream2ll
-  .str().c_str());
+  //display_ladders2D(total_counts_mean,"total_counts_mean",";chan;")->Print(Stream.str().c_str());
   //  display_ladders2D(total_counts_clean,"total_counts_clean",";chan;ADC clean")->Print(Stream2.str().c_str());
   display_ladders2D(significativit_histo,"SN",";chan;SN")->Print(Stream2.str().c_str());
   //display_ladders1D(good_chan_hist,"good_channel",";chan;")->Print(Stream2.str().c_str());
