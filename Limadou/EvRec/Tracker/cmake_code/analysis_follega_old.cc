@@ -1,7 +1,9 @@
 #include "LEvRec0.hh"
-#include "LTrackerCluster.hh"
 #include "LTrackerTools.hh"
-#include "Silicon_analysis_cls5.hh"
+#include "LTrackerCluster.hh"
+#include "analysis_follega.hh"
+#include "LPlotTools.hh"
+#include "LTrackerFittingTools.hh"
 
 #include <iostream>
 #include "TFile.h"
@@ -33,429 +35,28 @@
 #include <string>
 #include "string.h"
 
-using namespace std;
-
-
-//=================================================================================================
-//============================================= STRUCTURE =========================================
-//=================================================================================================
-
 /*
 const int n_chann = 4608; //number of channels 
-const int n_steps = 1; // number of steps of 1000 events
-int n_ev = 0; //number of events per step, default value. I assign it later in the code
+int n_steps = 0; // number of steps of 1000 events
+const int n_ev = 1000; //number of events per step
 const int VA_chan = 64; // number of channel in a VA
 const int n_VA = 72; // total number of VA
-const int ADC_CHAN = 4*VA_chan;
-const int LADDER_CHAN = 3*ADC_CHAN;
+const int ADC_CHAN = 3*VA_chan;
+const int LADDER_CHAN = 4*ADC_CHAN;
 const double sigmarange = 1.5;
 const double MIN_NCHANSPERBIN_4CN=5;
 const double MIN_SIGMA_CHANNEL_OFF=6;
 const double MAX_SIGMA_CHANNEL_OFF=30;
 const double MAX_SIGMA_NOISE_LEVEL=4; 
-const double sigma_cut_gauss = 3.;
+const double sigma_cut=6.5;
+const double gaussian_threshold = 3.;
 */
 
-/*
-struct cluster {
-  int seed;
-  int goodorbad=0;
-  int leftorright=0;
-  double count[5];
-  double sigma[5];
-  double sign[5];
-};
-*/
 
 struct event {
   int entry;
   std::vector<LTrackerCluster> cls;
-}; 
-
-//=================================================================================================
-//============================================= FUNCTIONS =========================================
-//=================================================================================================
-/*
-int ChanToLadder(int nStrip) {
-	if (nStrip<0 || nStrip>n_chann){
-		return -1;
-	}
-	else{
-	  return nStrip/LADDER_CHAN;
-	}
-}
-
-int ChanToADC(int nStrip) {
-  int nLadder = ChanToLadder(nStrip);
-  int reducednStrip = nStrip - LADDER_CHAN*nLadder;
-  return reducednStrip/ADC_CHAN;
-}
-
-int ChanToVA(int nStrip) {
-  int nADC = ChanToADC(nStrip);
-  int reducednStrip = nStrip - ADC_CHAN*nADC;
-  return reducednStrip/n_VA;
-}
-
-int ChanToSide(int nStrip) { // 0 p - 1 n
-  int nADC = ChanToADC(nStrip);
-  return (nADC/2)%2;
-}
-
-int ChanToPlane(int nStrip) { // 0 external - 1 internal
-  int scale=ChanToLadder(nStrip);
-  if(scale%2) return 1;
-  else return 0;
-} 
-
-int ChanToLadderPlane (int nChan) { // return 0,1,....11
-  return ChanToLadder(nChan)*2+ChanToSide(nChan);
-}
-
-bool SameLadderPlane(int Chan1, int Chan2) {
-  return (ChanToLadderPlane(Chan1) == ChanToLadderPlane(Chan2));
-} 
-*/
-//GET THE MEAN OVER 1000 EVENTS
-float GetMean( int * channel, float inf, float sup){
-	float sum=0;
-	int cont=0;
-	for (int j=0; j<n_ev; j++){
-		if ((channel[j]>=inf)&&(channel[j]<=sup)){			//mean_1 range = 0,5000, mean_2 range = +/- 3 sigma
-			sum+=channel[j];
-			cont++;
-		}
-	}
-	return sum/cont;
-}
-
-//first attampt of correction function
-double Correction_1(double eta, double par0, double par1, double par2){
-	double result=-999;
-	double fitting = par0+par1+par2;
-	result = (par0/fitting)+(par1/fitting)*eta+(par2/fitting)*eta*eta;
-	return 1./result; 
-}
-// final correction function, based on the parabolic fit parameters that are readed from "fitting_parameters... .txt"
-double Correction_2(TProfile * histo, double x){
-	double pos_x=-999;
-	double Nbin = histo->GetNbinsX();
-	double max = histo->GetBinContent(1);
-	double min = histo->GetBinContent(Nbin+1);
-	double first_corr = (max+min)/2.;
-	histo->Scale(1/first_corr);
-	pos_x = histo->GetBin(x);
-	return 1/(histo->GetBinContent(pos_x));
-}
-
-
-//GET THE SIGMA OVER 1000 EVENTS
-float GetSigma(int * channel, float * noise, float mean, float inf, float sup){
-	float sum=0;
-	int cont=0;
-	for (int j=0; j<n_ev; j++){
-			if ((channel[j]>=inf)&&(channel[j]<=sup)){				//sigma_1 range = 0,5000, sigma_2, sigma_3 range = +/- 3 sigma
-			sum +=((channel[j]-mean-noise[j])*(channel[j]-mean-noise[j]));
-			cont++;
-		}
-	}
-	return sqrt(sum/cont);
-}
-
-//GET THE COMMONNOISE
-void CommonNoise( int * channel, float *mean, float *sigma, float *max_sigma, float *noise, int * GEcounter/*, int * deadchannel*/){
-	int va_index;
-	for(int i=0; i<n_VA; ++i) {
-		GEcounter[i]=0;					
-		noise[i]=0.;
-	}
-	for (int i = 0; i<n_chann; ++i){
-		// line for excluding non gaussian channels
-		//if(deadchannel[i]!=0) continue;
-		va_index = i/VA_chan;
-		if ((channel[i]>=mean[i]-4*sigma[i])&&(channel[i]<=mean[i]+4*sigma[i])){ //selection on the channel +/- 3*sigma_2
-			if ((sigma[i]>=(max_sigma[va_index]-sigmarange))&&(sigma[i]<=(max_sigma[va_index]+sigmarange))&&(sigma[i]>=6.)&&(sigma[i]<=30.)){ //selection on the sigma
-				noise[va_index] += (channel[i]-mean[i]);
-				++GEcounter[va_index];
-			}
-		}
-	}
-	for(int i=0; i<n_VA; ++i) {
-		if(GEcounter[i]<1) 	noise[i]=0;   //NOT NEEDED. REDUNDANT
-		else noise[i] /= GEcounter[i];					
-	}
-	return;
-}
-// it returns the sigma for the common noise calculation
-double GetCleanedSigma(TH1F *h) {
-    // Put the histo into something workable on
-    int nb=h->GetNbinsX();
-
-    double max=MIN_NCHANSPERBIN_4CN-1.; // minimum number of chans we want for CN calculation: careful! If split into more bins you cannot demand too much...
-    double xmax=99999.;
-    for(int ib=1; ib<nb+1; ++ib) {
-        double x=h->GetBinCenter(ib);
-        double y=h->GetBinContent(ib);
-           
-        if(x<=MIN_SIGMA_CHANNEL_OFF||x>=MAX_SIGMA_CHANNEL_OFF) continue; // dead channels or noisy channel. Go ahead.
-        if(x>xmax+MAX_SIGMA_NOISE_LEVEL) break; // you have gone too far. The first 'structure' is the one you are interested in
-        if(y>max) { // update max infos
-            max=y;
-            xmax=x;
-        }
-    }
-    
-    return xmax;
-}
-// it fits the counts vs. eta profile and it gets the parabola parameters
-void Fitting_func(TProfile *histo[6], double par0[6], double par1[6], double par2[6]){
-	for (int i=0; i< 6; i++){
-		TF1 * myfit= new TF1("myfit","[0]+[1]*x+[2]*x*x", -1, 1);
-		histo[i]->Fit("myfit");
-		par0[i] = myfit->GetParameter("p0");
-		par1[i] = myfit->GetParameter("p1");
-		par2[i] = myfit->GetParameter("p2");
-	}
-	return;
-}
-// langaufunction taken from root examples
-Double_t langaufun(Double_t *x, Double_t *par) {
-      // Numeric constants
-      Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
-      Double_t mpshift  = -0.22278298;       // Landau maximum location
-
-      // Control constants
-      Double_t np = 100.0;      // number of convolution steps
-      Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
-
-      // Variables
-      Double_t xx;
-      Double_t mpc;
-      Double_t fland;
-      Double_t sum = 0.0;
-      Double_t xlow,xupp;
-      Double_t step;
-      Double_t i;
-
-      // MP shift correction
-      mpc = par[1] - mpshift * par[0];
-
-      // Range of convolution integral
-      xlow = x[0] - sc * par[3];
-      xupp = x[0] + sc * par[3];
-
-      step = (xupp-xlow) / np;
-
-      // Convolution integral of Landau and Gaussian by sum
-      for(i=1.0; i<=np/2; i++) {
-         xx = xlow + (i-.5) * step;
-         fland = TMath::Landau(xx,mpc,par[0]) / par[0];
-         sum += fland * TMath::Gaus(x[0],xx,par[3]);
-
-         xx = xupp - (i-.5) * step;
-         fland = TMath::Landau(xx,mpc,par[0]) / par[0];
-         sum += fland * TMath::Gaus(x[0],xx,par[3]);
-      }
-
-      return (par[2] * step * sum * invsq2pi / par[3]);
-}
-// langau fit "ad hoc" for protons
-void Langau(TH1F *histo[6], double langau_MPV[6], double langau_sigma[6]){
-	for (int i=0; i< 6; i++){
-		float max_bin = histo[i]->GetMaximumBin();
-		float max_center = histo[i]->GetBinCenter(max_bin);
-		float integral = histo[i]->Integral(0.,500.);
-		TF1 *langau = new TF1("langau","langaufun",0.,500.,4);
-		Double_t startvalues[4];
-		startvalues[0]=16; 
-		startvalues[1]=max_center; 
-		startvalues[2]=integral;
-		startvalues[3]=6.;
-		langau->SetParameters(startvalues);
-		histo[i]->Fit("langau","","",0.,500.);
-		//True line 
-		//langau_MPV[i] = langau->GetParameter("p1");
-		//Test line, trying to get the mean
-		langau_MPV[i] = histo[i]->GetMean();
-		langau_sigma[i]= langau->GetParameter("p0");
-		std::cout<<"**********ladder_"<<i<<" "<<langau_MPV[i]<<std::endl;
-	}
-	return;
-}
-
-void N_seed(int * ADC, float * mean_2, float * comnoise_real2, double * sigma_3, float significance, int *count/*, int * deadchannel*/){
-	for (int w = 0; w < 6; ++w){
-		count[w] = 0;
-	}
-	float content = 0;
-	float sign = 0;
-	for ( int w=0; w<6; w++){
-		for (int i = 0; i<n_chann/6; i++){
-			//if(deadchannel[i+w*n_chann/6]!=0) continue;
-			content = sign = 0;
-			content = (ADC[i+w*n_chann/6] - mean_2[i+w*n_chann/6] - comnoise_real2[(i+w*n_chann/6)/64]);
-			sign = content/sigma_3[i+w*n_chann/6];
-			if (sign>significance){
-				count[w] ++;
-			}
-		}
-	}
-	return;
-}
-
-//===========================>  GET PLOTS <==========================
-
-TCanvas * Plot_2d(TH2F * histo, string xaxis, string yaxis){
-	TCanvas * c2 = new TCanvas();
-	histo->GetXaxis()->SetTitle(xaxis.c_str());
-	histo->GetYaxis()->SetTitle(yaxis.c_str());
-	gStyle->SetPalette(1);
-	gPad->SetLogz();
-	gPad -> SetRightMargin(0.15);
-	histo->Draw("COLZ");
-	return c2;
-
-}
-
-TCanvas * Plot_1d(TH1F * histo, string xaxis, string yaxis){
-	TCanvas * c2 = new TCanvas();
-	histo->GetXaxis()->SetTitle(xaxis.c_str());
-	histo->GetYaxis()->SetTitle(yaxis.c_str());
-	histo->Draw();
-	return c2;
-
-}
-
-TCanvas * Plot6_2d(TH2F * histo, string name, string xaxis, string yaxis, float min, float max, string cond, string cond2){
-  	TCanvas * c2 = new TCanvas();
-  	c2->SetTitle(name.c_str());
-  	c2->Divide(3,2);
-  	histo -> GetXaxis()->SetTitle(xaxis.c_str());
-  	histo -> GetYaxis()->SetTitle(yaxis.c_str());
-    int binx = histo->GetNbinsX();
- 	int biny = histo->GetNbinsY();
- 	TH2F * histo_six2[6];
- 	TLine *line[6];
- 	TLine *line2[6];
- 	string title, name_0;
- 	name_0 = name;
- 	float pos[6] = {0,3,1,4,2,5};
- 	for ( int w=0; w<6; w++){
- 		name = name_0;
- 		name = name + "_ladder_"+to_string(w);
- 		title = name;
- 		histo_six2[w] = new TH2F(name.c_str(),title.c_str(),binx/6,0,binx/6,biny,min,max);
- 		line[w] = new TLine(binx/12,min,binx/12,max);
- 		line2[w] = new TLine(0,5.,4608,5.);
- 		for (int ix = 0; ix<binx/6; ix++){
- 			for (int iy = 0; iy<biny; iy++){
-	 		histo_six2[w]->SetBinContent(ix+1, iy+1, histo->GetBinContent(binx/6*w+ix+1,iy+1));
-	 		}
-	 	}
-	 	histo_six2[w] -> GetXaxis()->SetTitle(xaxis.c_str());
- 		histo_six2[w] -> GetYaxis()->SetTitle(yaxis.c_str());
-	 	c2 -> cd(pos[w]+1);
-	 	gPad -> cd(pos[w]+1);
-    	gPad -> SetRightMargin(0.15);
-	    gStyle -> SetOptStat(0);
-	   	gPad->SetLogz();
-	   	gStyle->SetPalette(1);
-	    histo_six2[w]->Draw("COLZ");
-	    if (cond=="yes"){ 
-		    line[w]->SetLineColor(2);
-		    line[w]->SetLineStyle(2);
-		    line[w]->Draw("same");
-		}
-		if (cond2=="5sign"){
-			line2[w]->SetLineColor(2);
-		    line2[w]->SetLineStyle(2);
-		    line2[w]->Draw("same");
-		}
- 	}
-  	return c2;
-}
-	
-TCanvas * Plot6_1d(TH1F * histo, string name, string xaxis, string yaxis ,float min, float max, string cond){
- 	TCanvas * c20 = new TCanvas();
- 	c20->SetTitle(name.c_str());
- 	c20->Divide(3,2);
- 	int bin = histo->GetNbinsX();
- 	TH1F * histo_six[6];
- 	TLine *line[6];
- 	string title, name_0;
- 	name_0 = name;
- 	float pos[6] = {0,3,1,4,2,5};
- 	for ( int w=0; w<6; w++){
- 		name = name_0;
- 		name = name + "ladder_"+to_string(w);
- 		title = name;
- 		histo_six[w] = new TH1F(name.c_str(),title.c_str(),bin/6,0,bin/6);
- 		line[w] = new TLine(bin/12,min,bin/12,max);
-	 	for (int i = 0; i<bin/6; i++){
-	 		histo_six[w]->SetBinContent(i+1,histo->GetBinContent(bin/6*w+i+1));
-	 	}
- 		histo_six[w] -> GetXaxis()->SetTitle(xaxis.c_str());
- 		histo_six[w] -> GetYaxis()->SetTitle(yaxis.c_str());
- 		histo_six[w]->SetMaximum(max);
-  		histo_six[w]->SetMinimum(min);
-	 	c20 -> cd(pos[w]+1);
-	    gStyle -> SetOptStat(0);
-	    histo_six[w]->Draw();
-	    if (cond=="yes"){ 
-		    line[w]->SetLineColor(2);
-		    line[w]->SetLineStyle(2);
-		    line[w]->Draw("same");
-		}
-	}
-
- 	return c20;
-}
-
-TCanvas * Plot_6histo_1d(TH1F * histo[6], string xaxis, string yaxis, string log){
-	TCanvas * c6 = new TCanvas();
-	c6->Divide(3,2);
-	float pos[6] = {0,3,1,4,2,5};
-	for ( int w=0; w<6; w++){
-		c6 -> cd(pos[w]+1);
-		histo[w]->GetXaxis()->SetTitle(xaxis.c_str());
-		histo[w]->GetYaxis()->SetTitle(yaxis.c_str());
-		gStyle -> SetOptStat(0);
-		if(log=="log") gPad->SetLogy();
-		histo[w]->Draw();
-	}
-	return c6;
-}
-TCanvas * Plot_6histo_profile(TProfile * histo[6], string xaxis, string yaxis, string log){
-	TCanvas * c6 = new TCanvas();
-	c6->Divide(3,2);
-	float pos[6] = {0,3,1,4,2,5};
-	for ( int w=0; w<6; w++){
-		c6 -> cd(pos[w]+1);
-		histo[w]->GetXaxis()->SetTitle(xaxis.c_str());
-		histo[w]->GetYaxis()->SetTitle(yaxis.c_str());
-		gStyle -> SetOptStat(0);
-		if(log=="log") gPad->SetLogy();
-		histo[w]->Draw();
-	}
-	return c6;
-}
-
-TCanvas * Plot_6histo_2d(TH2F * histo[6], string xaxis, string yaxis){
-	TCanvas * c6 = new TCanvas();
-	c6->Divide(3,2);
-	float pos[6] = {0,3,1,4,2,5};
-	for ( int w=0; w<6; w++){
-		c6 -> cd(pos[w]+1);
-		histo[w]->GetXaxis()->SetTitle(xaxis.c_str());
-		histo[w]->GetYaxis()->SetTitle(yaxis.c_str());
-		gStyle -> SetOptStat(0);
-		gPad->SetLogz();
-		histo[w]->Draw("COLZ");
-	}
-	return c6;
-}
-
-
+};
 
 
 				//==================================================================================================
@@ -463,7 +64,7 @@ TCanvas * Plot_6histo_2d(TH2F * histo[6], string xaxis, string yaxis){
 				//==================================================================================================
 
 
-void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string file_calib, string file_fit_par){
+void analysis_follega(string root_data_file, string typeofparticle, string file_calib, string file_fit_par){
 
 		//================= DECLARE AND INITIALIZE====================
 	//command for deleting all the objects, usfull if you want to write 
@@ -668,8 +269,8 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	float mean_final[n_chann];
 	float sigma_final[n_chann];
 	float non_gauss[n_chann];
-	double clearchanntot[n_chann];
-	double clearchanntot2[n_chann];
+	float clearchanntot[n_chann];
+	float clearchanntot2[n_chann];
 	int MASK[n_chann];
 	for(int i=0; i<n_chann; i++){
 		if(int(i*6/n_chann)==0) MASK[i]=3;
@@ -680,8 +281,8 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		if(int(i*6/n_chann)==5) MASK[i]=10;
 	}
 
-	for(int j=0; j<n_ev; ++j) { clearchann[j] = new double[n_chann];} 
-	for(int j=0; j<n_ev; ++j) { clearchann2[j] = new double[n_chann];} 
+	for(int i=0; i<n_ev; ++i) { clearchann[i] = new double[n_chann];} 
+	for(int i=0; i<n_ev; ++i) { clearchann2[i] = new double[n_chann];} 
 	for (int s=0; s<n_steps; ++s){ max[s] = new float[n_VA];} // initialize the max
 	for(int i=0; i<n_chann; ++i) { ADC[i] = new int[n_ev];} // initialize ADC one way
 	for(int j=0; j<n_ev; j++){ADC2[j] = new int[n_chann];} // initialize ADC other way
@@ -851,24 +452,26 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		*/
 		
 		// distribution of number of seeds INCOMPLETE, TO BE IMPROVED
+		/*
 		for(int j = 0; j<n_ev; ++j){	
-			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 5., &counter[0]/*, deadchannel*/);
+			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 5., &counter[0];
 			for (int w = 0; w < 6; w++){
 				h_distribution_seed_5->Fill(counter[w]+20*w);
 			}
-			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 4., &counter[0]/*, deadchannel*/);
+			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 4., &counter[0]);
 			for (int w = 0; w < 6; w++){
 				h_distribution_seed_4->Fill(counter[w]+20*w);
 			}
-			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 3., &counter[0]/*, deadchannel*/);
+			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 3., &counter[0];
 			for (int w = 0; w < 6; w++){
 				h_distribution_seed_3->Fill(counter[w]+20*w);
 			}
-			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 3.5, &counter[0]/*, deadchannel*/);
+			N_seed(ADC2[j], mean_2, comnoise_real[j], sigma_3, 3.5, &counter[0]);
 			for (int w = 0; w < 6; w++){
 				h_distribution_seed_35->Fill(counter[w]+20*w);
 			}
 		}
+		*/
 
 		for(int iev= 0 ; iev<n_ev; ++iev){
 			for(int ichan=0;ichan<n_chann;++ichan){
@@ -899,18 +502,22 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 				h_corr_adc1chan[n_adc]->Fill(clearchann[iev][0],clearchann[iev][truechann]);
 			}
 		}
+		//cluster finding code
+		std::vector< event > clev; 
+    	for(int iev=0;iev<NCALIBEVENTS;++iev){
+     		std::vector<LTrackerCluster> *clusters=GetClusters(clearchann[iev],sigma_3);
+    		event myevent;
+     		for(int ev=0;ev<clusters->size();++ev){
+				myevent.cls.push_back(clusters->at(ev));
+      		}
+      	clev.push_back(myevent);
+      	}
+		/*
 		//_____________________ROBERTO CODE__________________________
 		std::vector< event > clev; // clever OR clean event
 	    for(int iev=0;iev<n_ev;++iev){
 	    	event myevent;
 	    	myevent.entry = s*n_ev+iev;
-	    	std::vector<LTrackerCluster> *clusters=GetClusters(clearchann[iev],sigma_3);
-	    	for(int ev=0;ev<static_cast<int>(clusters->size());++ev){
-				myevent.cls.push_back(clusters->at(ev));
-			}
-			
-        	if(myevent.cls.size()>0) clev.push_back(myevent);
-	    	/*
 	    	//myevent.entry = event_index;
 	    	for(int ichan=0;ichan<n_chann;++ichan){
 	    		//if(deadchannel[ichan]!=0) continue;
@@ -960,7 +567,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		   			cluster mycluster;
 
 		   			//Previus selection of seed, but incloplete or wrong
-		   			/*
+		   			
 				    if(abs(max2ind-maxind)==2 && max2sign>3.) {
 				    	//if(window_sign.at((maxind+max2ind)/2)<3.) mycluster.goodorbad = 1;
 				    	seed=ichan+(maxind+max2ind)/2;
@@ -977,7 +584,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		    		for(int iii=0; iii<5; ++iii) {
 		    			int cchan = seed-2+iii;//seed-ichan-1+iii;
 		    			bool SameLP_FLAG = SameLadderPlane(seed, cchan);
-		    			/*
+		    			
 		    			if(deadchannel[cchan]!=0){
 		    				mycluster.count[iii] = 0.;
 		    				mycluster.sign[iii] = 0.;
@@ -997,13 +604,11 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	    		}
 	      	}
 			
-			
+			calib.close();
 	      	if(myevent.cls.size()>0) clev.push_back(myevent);
-	      	*/
 	    }
-	    calib.close();
 		//________________________.:End Roberto Code:._______________________________
-
+	    */
 	    for(int i=0; i<int(clev.size()); ++i){
 	    	for(int h=0; h<int(clev.at(i).cls.size()); ++h){
     			LTrackerCluster mycl = clev.at(i).cls.at(h);
@@ -1042,13 +647,10 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 						counter_bar++;
 					}
 				}
-				//new eta method!!
-				eta = mycl.GetEta();
-				/*
-				if(mycl.goodorbad==0){
-					eta = ( mycl.count[1]>mycl.count[3] ? (mycl.count[2]-mycl.count[1])/(mycl.count[2]+mycl.count[1]) : (mycl.count[3]-mycl.count[2])/(mycl.count[3]+mycl.count[2]));
-				}
-				*/
+				//if(mycl.goodorbad==0){
+				eta = clev.at(i).cls.at(h).GetEta();
+					//eta = ( mycl.count[1]>mycl.count[3] ? (mycl.count[2]-mycl.count[1])/(mycl.count[2]+mycl.count[1]) : (mycl.count[3]-mycl.count[2])/(mycl.count[3]+mycl.count[2]));
+				//}
 				h_clustersize[side][int(mycl.seed*6/n_chann)]->Fill(counter_bar);
 				h_sumcontcluster_uncorrected[side][int(mycl.seed*6/n_chann)]->Fill(sum_count_bar);
 				h_sumcontcluster[side][int(mycl.seed*6/n_chann)]->Fill(sum_count_bar*Correction_1(eta,p0_read[side][int(mycl.seed*6/n_chann)],p1_read[side][int(mycl.seed*6/n_chann)],p2_read[side][int(mycl.seed*6/n_chann)]));
@@ -1231,16 +833,19 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 	h_non_gauss->Write();
 	h_correlation_sign_minus->Write();
 	h_correlation_sign_plus->Write();
+	/*
 	h_distribution_seed_5->Write();
 	h_distribution_seed_4->Write();
 	h_distribution_seed_35->Write();
 	h_distribution_seed_3->Write();
+	*/
 	h_checkdeadchannel->Write();
 	checkRobCode->Write();
 	analysis2->Close();
 
 	// Number of seed distributions overlapped
 	gROOT->SetBatch(kTRUE);
+	/*
 	TCanvas * c5 = new TCanvas();
 	c5->Print("NSeedDist_calibration_and_data.pdf[");
 		Plot6_1d(h_distribution_seed_5,"h_distribution_seed_5","number of seed with 5 #sigma cut","entries",0,60000,"no")->Print("NSeedDist_calibration_and_data.pdf");
@@ -1248,6 +853,7 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 		Plot6_1d(h_distribution_seed_35,"h_distribution_seed_35","number of seed with 3.5 #sigma cut","entries",0,60000,"no")->Print("NSeedDist_calibration_and_data.pdf");
 		Plot6_1d(h_distribution_seed_3,"h_distribution_seed_3","number of seed with 3 #sigma cut","entries",0,60000,"no")->Print("NSeedDist_calibration_and_data.pdf");
 	c5->Print("NSeedDist_calibration_and_data.pdf]");
+	*/
 	string name_plot1 = typeofparticle+"_calibration_and_data_1.pdf[";
 	string name_plot11 = typeofparticle+"_calibration_and_data_1.pdf";
 	string name_plot111 = typeofparticle+"_calibration_and_data_1.pdf]";
@@ -1323,16 +929,18 @@ void Silicon_analysis_cls5(string root_data_file, string typeofparticle, string 
 
 
 
-void Series(){
-	Silicon_analysis_cls5("20161112-112421-Run_3C_37MeV_SERVO_EASIROC2.root","protons37MeV_c5","calib_protons_37MeV.txt","fitting_parameters_protons37MeV_c5.txt");
-	Silicon_analysis_cls5("RUN_3C_51MeV_SERVO_EASIROC2_HOT.root","protons50MeV_c5","calib_protons_50MeV.txt","fitting_parameters_protons50MeV_c5.txt");
-	Silicon_analysis_cls5("data_proton_11Nov_4C.root","protons70MeV_c5","calib_protons_70MeV.txt","fitting_parameters_protons70MeV_c5.txt");
-	Silicon_analysis_cls5("RUN_3C_100MeV_SERVO_EASIROC2_HOT.root","protons100MeV_c5","calib_protons_100MeV.txt","fitting_parameters_protons100MeV_c5.txt");
-	Silicon_analysis_cls5("RUN_3C_125MeV_SERVO_EASIROC2_HOT.root","protons125MeV_c5","calib_protons_125MeV.txt","fitting_parameters_protons125MeV_c5.txt");
-	Silicon_analysis_cls5("RUN_3C_154MeV_SERVO_EASIROC2_HOT.root","protons154MeV_c5","calib_protons_154MeV.txt","fitting_parameters_protons154MeV_c5.txt");
-	Silicon_analysis_cls5("RUN_3C_174MeV_SERVO_EASIROC2_HOT.root","protons174MeV_c5","calib_protons_174MeV.txt","fitting_parameters_protons174MeV_c5.txt");
-	Silicon_analysis_cls5("data_proton_12Nov_3C.root","protons228MeV_c5","calib_protons_228MeV.txt","fitting_parameters_protons228MeV_c5.txt");
+int main(){
+	analysis_follega("20161112-112421-Run_3C_37MeV_SERVO_EASIROC2.root","protons37MeV_c5","calib_protons_37MeV.txt","fitting_parameters_protons37MeV_c5.txt");
+	analysis_follega("RUN_3C_51MeV_SERVO_EASIROC2_HOT.root","protons50MeV_c5","calib_protons_50MeV.txt","fitting_parameters_protons50MeV_c5.txt");
+	analysis_follega("data_proton_11Nov_4C.root","protons70MeV_c5","calib_protons_70MeV.txt","fitting_parameters_protons70MeV_c5.txt");
+	analysis_follega("RUN_3C_100MeV_SERVO_EASIROC2_HOT.root","protons100MeV_c5","calib_protons_100MeV.txt","fitting_parameters_protons100MeV_c5.txt");
+	analysis_follega("RUN_3C_125MeV_SERVO_EASIROC2_HOT.root","protons125MeV_c5","calib_protons_125MeV.txt","fitting_parameters_protons125MeV_c5.txt");
+	analysis_follega("RUN_3C_154MeV_SERVO_EASIROC2_HOT.root","protons154MeV_c5","calib_protons_154MeV.txt","fitting_parameters_protons154MeV_c5.txt");
+	analysis_follega("RUN_3C_174MeV_SERVO_EASIROC2_HOT.root","protons174MeV_c5","calib_protons_174MeV.txt","fitting_parameters_protons174MeV_c5.txt");
+	analysis_follega("data_proton_12Nov_3C.root","protons228MeV_c5","calib_protons_228MeV.txt","fitting_parameters_protons228MeV_c5.txt");
 	//Silicon_analysis_cls5("RUN_ROTAZIONE_70MeV_SERVO_EASIROC2_HOT.root","protons_beamrotated","calib_protons_beamrotated.txt","fitting_parameters_beamrotated_c5.txt");
+
+	return 0;
 }
 
 

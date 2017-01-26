@@ -319,10 +319,7 @@ void LTrackerCalibrationManager::GaussianityIndex(const int StartEntry, const in
 
 
 LTrackerCalibrationManager::~LTrackerCalibrationManager() {
-  if(calRunFile) {
-    if(calRunFile->IsOpen()) calRunFile->Close();
-    calRunFile = 0;
-  }
+  // do not care about singleton destructor
 }
 
 
