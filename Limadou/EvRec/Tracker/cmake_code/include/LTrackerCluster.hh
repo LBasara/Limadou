@@ -12,7 +12,7 @@ const double CLSNTHRESHOLD=4.5;//
 class LTrackerCluster {
 public:
   LTrackerCluster();
-  LTrackerCluster(int inpSeed, double *inpCont, double *inpSigma);
+  LTrackerCluster(const int inpSeed, const double *inpCont, const double *inpSigma);
   int seed;
   double count[CLUSTERCHANNELS];
   double sigma[CLUSTERCHANNELS];

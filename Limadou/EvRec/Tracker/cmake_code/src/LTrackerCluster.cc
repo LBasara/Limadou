@@ -51,7 +51,7 @@ LTrackerCluster::LTrackerCluster(){
   
 }
 
-LTrackerCluster::LTrackerCluster(int inpSeed, double *inpCont, double *inpSigma){
+LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const double *inpSigma){
   if(inpSeed<0 || inpSeed>NCHAN) {
     LTrackerCluster();
     std::cerr << "LTrackerCluster::LTrackerCluster(int inpSeed, double *inpCont, double *inpSigma)   error:"

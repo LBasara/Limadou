@@ -5,59 +5,64 @@
 #include <math.h>
 #include <iostream>
 
-int ChanToLadder(int nStrip) {
+int ChanToLadder(const int nStrip) {
   if(nStrip<0 || nStrip>=NCHAN)
     return -1;
   else 
     return nStrip/LADDER_CHAN;
 }
 
-int ChanToLadderADC(int nStrip) {
+int ChanToLadderADC(const int nStrip) {
   int nLadder = ChanToLadder(nStrip);
   int reducednStrip = nStrip - LADDER_CHAN*nLadder;
   return reducednStrip/ADC_CHAN;
 }
 
-int ChanToADC(int nStrip) {
+int ChanToADC(const int nStrip) {
   return nStrip/ADC_CHAN;
 }
 
-int ChanToADCVA(int nStrip) {
+int ChanToADCVA(const int nStrip) {
   int nADC = ChanToADC(nStrip);
   int reducednStrip = nStrip - ADC_CHAN*nADC;
   return reducednStrip/VA_CHAN;
 }
 
-int ChanToVA(int nStrip) {
+int ChanToVA(const int nStrip) {
   return nStrip/VA_CHAN;
 }
 
-int ChanToSide(int nStrip) { // 0 p - 1 n
+int ChanToSide(const int nStrip) { // 0 p - 1 n
   int nADC = ChanToLadderADC(nStrip);
   return (nADC/2)%2;
 }
 
-int ChanToPlane(int nStrip) { // 0 external - 1 internal
+int ChanToPlane(const int nStrip) { // 0 external - 1 internal
   int scale=ChanToLadder(nStrip);
   if(scale%2) return 1;
   else return 0;
 }
 
-int ChanToLadderPlane (int nChan) { // return 0,1,....11
+int ChanToLadderPlane (const int nChan) { // return 0,1,....11
   return ChanToLadder(nChan)*2+ChanToSide(nChan);
 }
 
-bool SameLadderPlane(int Chan1, int Chan2) {
+bool SameLadderPlane(const int Chan1, const int Chan2) {
   return (ChanToLadderPlane(Chan1) == ChanToLadderPlane(Chan2));
 }
 
-int ChanToLadderChan(int Chan) {
+int ChanToLadderChan(const int Chan) {
   int result= Chan-LADDER_CHAN*ChanToLadder(Chan);
   return result;
 }
 
+int ChanToSideChan(const int Chan) {
+  int result= ChanToLadderChan(Chan)%SIDE_CHAN;
+  return result;
+}
 
-std::vector<LTrackerCluster>* GetClusters(double* cont, double *sigma) {
+
+std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma) {
   
   auto result= new std::vector<LTrackerCluster>;
   double sn[NCHAN];
@@ -68,22 +73,32 @@ std::vector<LTrackerCluster>* GetClusters(double* cont, double *sigma) {
       //for(int ich=NCHAN-1; ich>-1; --ich) {
     if(sn[ich]<CLFINDTHRESHOLD) continue;
  
-    // Check if there's a higher maximum  - up to two chans ahead
     int maxindex1=ich;
     double max1 = sn[ich];
-    int extentAhead=std::min(LADDER_CHAN-1-ChanToLadderChan(ich),2);
-    for(int index=1; index<=extentAhead; ++index) {
-      if(sn[ich+index]>max1) {
-	maxindex1=ich+index;
-	max1=sn[ich+index];
+    // Check if there's a higher maximum  - up to two chans ahead
+    int newmaxindex1 = maxindex1;
+    double newmax1 = max1;
+    while(1) {
+      int extentAhead=std::min(SIDE_CHAN-1-ChanToSideChan(maxindex1),2);
+      for(int index=1; index<=extentAhead; ++index) {
+	if(sn[maxindex1+index]>newmax1) {
+	  newmaxindex1=maxindex1+index;
+	  newmax1=sn[maxindex1+index];
+	}
+      } // Endl loop for newmax1
+      if(newmaxindex1 == maxindex1) {
+	break;
+      } else {
+	maxindex1 = newmaxindex1;
+	max1 = newmax1;
       }
-    } // Endl loop for max1
+    }
 
     // Find the highest SN adjacent to the maximum
     int maxindex2;
-    int lchmax = ChanToLadderChan(maxindex1);
-    if(lchmax==0) maxindex2=maxindex1+1;
-    else if(lchmax==LADDER_CHAN-1) maxindex2=maxindex1-1;
+    int schmax = ChanToSideChan(maxindex1);
+    if(schmax==0) maxindex2=maxindex1+1;
+    else if(schmax==SIDE_CHAN-1) maxindex2=maxindex1-1;
     else maxindex2=(sn[maxindex1-1]>sn[maxindex1+1] ? maxindex1-1 : maxindex1+1);
 
     // Check if the maximum pair is suitable for cluster finding
@@ -94,8 +109,8 @@ std::vector<LTrackerCluster>* GetClusters(double* cont, double *sigma) {
     double meter=numerator/denominator;
     // Compare with the threshold
     if(meter<CLSNTHRESHOLD) {
-            ich+=2; // already explored up to ich+2
-	    //ich-=2;
+      ich+=2; // already explored up to ich+2
+      //ich-=2;
       continue;
     }
     LTrackerCluster mycl(maxindex1, cont, sigma);

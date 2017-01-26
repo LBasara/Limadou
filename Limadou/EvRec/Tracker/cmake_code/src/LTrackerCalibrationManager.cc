@@ -163,7 +163,7 @@ void LTrackerCalibrationManager::ComputeCNMask(const double *sigma1, bool *CN_ma
   // Compute CN mask 
   for(int iChan=0; iChan<NCHAN; ++iChan) {
     int iVA=ChanToVA(iChan);
-    if(std::abs(sigma1[iChan]-hMaxima[iVA])>HALFSIGMA1WIDTH) CN_mask[iChan]=false;
+    if(std::fabs(sigma1[iChan]-hMaxima[iVA])>HALFSIGMA1WIDTH) CN_mask[iChan]=false;
     else CN_mask[iChan]=true;
   }  
   
@@ -229,7 +229,7 @@ void LTrackerCalibrationManager::CleanedMeanSigma(const int StartEntry, const in
     for(int iChan=0; iChan<NCHAN; ++iChan) {
       double x = static_cast<double>(cev.strip[iChan]);
       double diff = (x-mean0[iChan]);
-      if(std::abs(diff)>CHANCLEANINGTHRESHOLD*sigma0[iChan]) continue;
+      if(std::fabs(diff)>CHANCLEANINGTHRESHOLD*sigma0[iChan]) continue;
       mean1[iChan]+=x;
       sumsq1[iChan]+=(x*x);
       ++counter1[iChan];
@@ -268,7 +268,7 @@ void LTrackerCalibrationManager::CNCorrectedSigma(const int StartEntry, const in
     for(int iChan=0; iChan<NCHAN; ++iChan) {
       double x = static_cast<double>(cev.strip[iChan]);
       double diff = (x-mean1[iChan]);
-      if(std::abs(diff)>CHANCLEANINGTHRESHOLD*sigma1[iChan]) continue;
+      if(std::fabs(diff)>CHANCLEANINGTHRESHOLD*sigma1[iChan]) continue;
       double y = (x-CN[ChanToVA(iChan)]);  // CN corrected!
       mean2[iChan]+=y;
       sumsq2[iChan]+=(y*y);
@@ -303,7 +303,7 @@ void LTrackerCalibrationManager::GaussianityIndex(const int StartEntry, const in
     ComputeCN(cev.strip,mean2,CN_mask,CN);
     for(int iChan=0; iChan<NCHAN; ++iChan) {
       double x = (static_cast<double>(cev.strip[iChan])-mean2[iChan]-CN[ChanToVA(iChan)]);
-      if(std::abs(x)>GAUSSIANITYSIGMATHRESHOLD*sigma2[iChan]) ++ngindex[iChan];
+      if(std::fabs(x)>GAUSSIANITYSIGMATHRESHOLD*sigma2[iChan]) ++ngindex[iChan];
       ++ngcounter[iChan];
     }
   }
