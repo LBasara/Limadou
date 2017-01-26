@@ -25,162 +25,28 @@
 #include "LTrackerCluster.hh"
 #include "LTrackerTools.hh"
 
-//structures
 
 struct event {
   int entry;
   std::vector<LTrackerCluster> cls;
 };
 
-//Getting data from the Limadou TTree
-
-
-//mean, sigma, common noise functions
-
-double mean_chan(short *vector, double mean=0,double threshold=0,int length=NCALIBEVENTS){
-    double result=0;
-  int min,max;
-  int count=0;
-  if((mean-threshold)<0){
-    min=0;
-  }else
-    min=mean-threshold;
-  if((mean+threshold)>NADC || (threshold)==0){
-    max=NADC;
+void f_eta(int size,double *x_axis,int* dn_deta,double *result){
+  double partial_sum=0.;
+  double step_int=0.;
+  double step=(double)ETARANGE/(double)ETASTEP;
+  for(int i=0;i<size;++i){
+    step_int=dn_deta[i]*step;
+    partial_sum+=step_int;
+    result[i]=partial_sum;
   }
-  else
-    max=mean+threshold;
-  for(int i=0;i<length;i++){
-    if(vector[i]>min && vector[i]<max){
-      result+=vector[i];
-      count++;
-      }
+  for(int i=0;i<size;++i){
+    if(partial_sum>0.)    result[i]/=partial_sum;
   }
-	
-  result/=(count);
- 
-
-  return result;
-}
-
-double sigma_chan(short *vector, double mean,double threshold=0.,int length=NCALIBEVENTS){
-  double sigma=0;
-  int min,max;
-  int count=0;  
-   if((mean-threshold)<0){
-    min=0;
-  }else
-    min=mean-threshold;
-  if((mean+threshold)>NADC || threshold==0){
-    max=NADC;
-  }
-  else
-    max=mean+threshold;
-
-  for(int i=0;i<length;i++){
-    if(vector[i]<max && vector[i]>min){
-      sigma+=(vector[i]-mean)*(vector[i]-mean);
-      count++;
-    }
-  }
-  sigma/=count;
-  sigma=sqrt(sigma);
-  return sigma;
-}
-
-double sigma_clean(short *vector,double *cmn,double mean,double threshold,double ev){
-  double result=0.;
-  int min=999.;
-  int max=999.;
-  int count=0;
-   if((mean-threshold)<0){
-    min=0;
-  }else
-    min=mean-threshold;
-  if((mean+threshold)>NADC){
-    max=NADC;
-  }
-  else
-    max=mean+threshold;
-  for(int i=0;i<ev;++i){
-    if(vector[i]<max && vector[i]>min){
-      result+=(vector[i]-mean-cmn[i])*(vector[i]-mean-cmn[i]);
-      ++count;
-    }
-      
-  }
-  result/=(double)count;
-  result=sqrt(result);
-  //std::cout<<count<<"\t"<<result<<std::endl;
-  return result;
-
-}
-
-
-//R.I.
-double GetCleanedSigma(int *h_va /*sigma_VA*/,int length=BIN_SIGMA) {
-    // Put the histo into something workable on
-    int nb=length;
-
-    double max=MIN_NCHANSPERBIN_4CN-1.; // minimum number of chans we want for CN calculation: careful! If split into more bins you cannot demand too much...
-    double xmax=99999.;
-    for(int ib=0; ib<nb; ++ib) {
-        double x=ib*SIGMA_STEP;
-        double y=h_va[ib];
-           
-        if(x<=MIN_SIGMA_CHANNEL_OFF || x>=MAX_SIGMA_CHANNEL_OFF) continue; // dead channels. Go ahead.
-        if(x>xmax+MAX_SIGMA_NOISE_LEVEL ) break; // you have gone too far. The first 'structure' is the one you are interested in
-        if(y>max) { // update max infos
-            max=y;
-            xmax=x;
-        }
-    }
-    
-    return xmax;
-} // it returns 99999. by default 
-
-
-void common_noise_clean(short *adc,double *mean,double *sigma_chan,double *sigma_mean,double *cmn,bool *IsAlive){
-  for(int i=0;i<N_VA;++i){
-    double result = 0.;
-    
-    int count = 0;
-    double min=-999.;
-    double max=-999.;
-    double min_s=-999.;
-    double max_s=-999.;
-    for(int j=0;j<VA_CHAN;++j){
-      if(!IsAlive[i*VA_CHAN+j]) continue;
-      min=mean[i*VA_CHAN+j]-SIGMA_CUT_CN*sigma_chan[i*VA_CHAN+j];
-      max=mean[i*VA_CHAN+j]+SIGMA_CUT_CN*sigma_chan[i*VA_CHAN+j];
-      min_s=sigma_mean[i]-SIGMA_SEL;
-      max_s=sigma_mean[i]+SIGMA_SEL;				    
-      if(adc[i*VA_CHAN+j]<=max && adc[i*VA_CHAN+j]>=min){
-	if(sigma_chan[i*VA_CHAN+j]<=max_s && sigma_chan[i*VA_CHAN+j]>=min_s && sigma_chan[i*VA_CHAN+j]>=MIN_SIGMA_CHANNEL_OFF && sigma_chan[i*VA_CHAN+j]<=MAX_SIGMA_CHANNEL_OFF){
-	  result += (adc[i*VA_CHAN+j]-mean[i*VA_CHAN+j]);
-	  ++count;
-	}
-      }
-    }
-    if(count==0)
-      result=0.;
-    else
-      result/=(double)count;
-    cmn[i]=result;
-  }
-  
   return;
 }
+//graphic tools
 
-//Check for channel "gaussianity"
-double IsGauss(short *data,double mean,double sigma,double *cn,int nev){
-  double count=0.;
-  for(int iev=0;iev<nev;++iev)
-    if(abs(data[iev]-mean-cn[iev])/sigma>NSIGMABOOL) ++count;
-  return (count-GAUSSTHRESHOLD*nev)/sqrt(GAUSSTHRESHOLD*nev);
-}
-
-//Graphics
 TCanvas *display_ladders1D(TH1D *full_histo,std::string name,std::string title,double xrange=LADDER_BIN){
   TCanvas *display= new TCanvas();
   
@@ -357,202 +223,38 @@ TCanvas *drawing6_2D(TH2D *ladder[N_LADDER]){
 }
 
 
-//locate chan
-double correction(double eta){
-  double result=-9999.;
-  double sum=71.54;
-  result=7.909/sum*eta*eta+
-    0.774/sum*eta+
-    63.64/sum;
-  
-  return 1/result;
-}
-
-void f_eta(int size,double *x_axis,int* dn_deta,double *result){
-  double partial_sum=0.;
-  double step_int=0.;
-  double step=(double)ETARANGE/(double)ETASTEP;
-  for(int i=0;i<size;++i){
-    step_int=dn_deta[i]*step;
-    partial_sum+=step_int;
-    result[i]=partial_sum;
-  }
-  for(int i=0;i<size;++i){
-    if(partial_sum>0.)    result[i]/=partial_sum;
-  }
-  return;
-}
-
-//Production of calibration file
-void calibration(std::string namefile_calib,std::string outputname){
-  LEvRec0File inpFile(namefile_calib.c_str());
-  LEvRec0 ev_calib;
-  inpFile.SetTheEventPointer(ev_calib);
-
-  const int NCALIBRUN=inpFile.GetEntries();  
-  short *data_calib[NCHAN];
-
-  for(int ichan=0;ichan<NCHAN;++ichan)
-    data_calib[ichan]=new short[NCALIBRUN];
-  
-
-  short *data2_calib[NCALIBRUN];
-  for(int iev=0;iev<NCALIBRUN;++iev)
-    data2_calib[iev]=new short[NCHAN];
-  double *CN_matrix_calib[NCALIBRUN];
-  for(int iev=0;iev<NCALIBRUN;++iev)
-    CN_matrix_calib[iev]= new double[N_VA];
-
-  for(int iev=0; iev<NCALIBRUN; ++iev){
-    inpFile.GetEntry(iev);
-    for(int ichan=0;ichan<NCHAN;ichan++){
-      data_calib[ichan][iev]=ev_calib.strip[ichan];
-    }
-  }
-  for(int iev=0;iev<NCALIBRUN;++iev){
-    for(int ichan=0;ichan<NCHAN;ichan++){
-      data2_calib[iev][ichan]=data_calib[ichan][iev];
-      
-    }
-  }
-
-
-  double mean1_calib[NCHAN];
-  double sigma1_calib[NCHAN];
-  double mean2_calib[NCHAN];
-  double sigma2_calib[NCHAN];
-  double sigma3_calib[NCHAN];
-  bool IsAlive[NCHAN];
-
-  double co_no_calib[NCALIBRUN];
-
-
-for(int iev=0;iev<NCALIBRUN;++iev)
-    co_no_calib[iev]=0.;
-  
-  for(int ichan=0;ichan<NCHAN;++ichan){
-    mean1_calib[ichan]=9999.;
-    sigma1_calib[ichan]=0.;
-    mean2_calib[ichan]=0.;
-    sigma2_calib[ichan]=0.;
-    sigma3_calib[ichan]=0;
-    IsAlive[ichan]=1;
-  }
-  for(int ichan=0;ichan<NCHAN;ichan++){
-    mean1_calib[ichan]=mean_chan(data_calib[ichan],0.,0.,NCALIBRUN);
-    sigma1_calib[ichan]=sigma_chan(data_calib[ichan],mean1_calib[ichan],0.,NCALIBRUN);
-    mean2_calib[ichan]=mean_chan(data_calib[ichan],mean1_calib[ichan],(SIGMA_CUT_SIGMA*sigma1_calib[ichan]),NCALIBRUN);
-    sigma2_calib[ichan]=sigma_clean(data_calib[ichan],co_no_calib,mean2_calib[ichan],(SIGMA_CUT_SIGMA*sigma1_calib[ichan]),NCALIBRUN);
-  }
-    
-    //Calculation of the mean value of the distribution of the sigma2 for each channel
-    int sigma_dist[BIN_SIGMA];
-    double sigma_mean[N_VA];
-    for(int iva=0;iva<N_VA;++iva)
-      sigma_mean[iva]=0.;
-    
-    for(int iva=0;iva<N_VA;++iva){
-      for(int ibin=0;ibin<BIN_SIGMA;++ibin)
-	sigma_dist[ibin]=0;
-
-      for(int ich=0;ich<VA_CHAN;++ich){
-	if(sigma2_calib[(iva*VA_CHAN+ich)]<100.)
-	  sigma_dist[(int)(sigma2_calib[(iva*VA_CHAN+ich)]/SIGMA_STEP)]++;	 
-      }
-      sigma_mean[iva]=GetCleanedSigma(sigma_dist);
-    }
-    
-    double isgaus[NCHAN];
-
-  
-    
-    for(int evt=0;evt<NCALIBRUN;evt++)
-    common_noise_clean(data2_calib[evt],mean2_calib,sigma2_calib,sigma_mean,&CN_matrix_calib[evt][0],IsAlive);
-      
-  
-  for(int iva=0;iva<N_VA;++iva){
-    for(int ievt=0;ievt<NCALIBRUN;++ievt){
-      co_no_calib[ievt]=CN_matrix_calib[ievt][iva];
-      
-    }
-    for(int j=0;j<VA_CHAN;j++){
-      sigma3_calib[iva*VA_CHAN+j]=sigma_clean(data_calib[iva*VA_CHAN+j],co_no_calib,mean2_calib[iva*VA_CHAN+j],(SIGMA_CUT_SIGMA*sigma2_calib[iva*VA_CHAN+j]),NCALIBRUN);
-      
-      //Is the channel gaussian??
-      isgaus[iva*VA_CHAN+j]=IsGauss(data_calib[iva*VA_CHAN+j],mean2_calib[iva*VA_CHAN+j],sigma3_calib[iva*VA_CHAN+j],co_no_calib,NCALIBRUN);
-     
-    }
-  }
-
- std:: ofstream outfile (outputname.c_str(),std::ofstream::out);
-     outfile << "***************  LIMADOU calibration file  **************"<<std::endl;
-     outfile<< "From file: " <<namefile_calib<<std::endl
-	    <<  "*********************************************************"<<std::endl
-	    <<"N_chan \t Pedestal \t Sigma2 \t Sigma3 \t Gaus_index"<<std::endl;
-     for(int ichan=0;ichan<NCHAN;++ichan)
-       outfile << ichan <<"\t"<<mean2_calib[ichan]<<"\t"<<sigma2_calib[ichan]<<"\t"<<sigma3_calib[ichan]<<"\t"<<isgaus[ichan]<<std::endl;
-     /*
-     TH1D *gaus_index=new TH1D("gausindex","gausindex;chan;gausindex",NCHAN,0,NCHAN);
-
-     for(int ichan=0;ichan<NCHAN;++ichan)
-       gaus_index->Fill(ichan,isgaus[ichan]);
-
-     gaus_index->Draw();
-     */
-}
-
-
 void analysis(std::string namefile,std::string calib_file,std::string outputname){
   gROOT->Reset();
   gDirectory->GetList()->Delete();
 
-  //reading and storing calibration values
-  std::ifstream infile (calib_file.c_str(),std::ifstream::in);
+   std::ifstream infile (calib_file.c_str(),std::ifstream::in);
   std::string buffer;   //avoiding header
   for(int j=0;j<4;++j)
     std::getline(infile,buffer);
 
   double mean2_calib[NCHAN];
-  double sigma2_calib[NCHAN];
   double sigma3_calib[NCHAN];
   double gausindex[NCHAN];
+  bool CNmask[NCHAN];
+   bool IsAlive[NCHAN];
+
   
   for(int ichan=0;ichan<NCHAN;++ichan){
     mean2_calib[ichan]=0.;
-    sigma2_calib[ichan]=0.;
-    sigma3_calib[ichan]=0;
+    sigma3_calib[ichan]=0.;
     gausindex[ichan]=0.;
+    CNmask[ichan]=0;
   }
-  int buf;
- 
+
   for(int ichan=0;ichan<NCHAN;++ichan){
-      infile >>  buf >> mean2_calib[ichan] >>sigma2_calib[ichan] >> sigma3_calib[ichan]>>gausindex[ichan];
-  }
-  //Calculation of the mean value of the distribution of the sigma2 for each channel
-  int sigma_dist[BIN_SIGMA];
-  double sigma_mean[N_VA];
-  for(int iva=0;iva<N_VA;++iva)
-    sigma_mean[iva]=0.;
-    
-  for(int iva=0;iva<N_VA;++iva){
-    for(int ibin=0;ibin<BIN_SIGMA;++ibin)
-      sigma_dist[ibin]=0;
-    
-    for(int ich=0;ich<VA_CHAN;++ich){
-      if(sigma2_calib[(iva*VA_CHAN+ich)]<MAX_SIGMA)
-	sigma_dist[(int)(sigma2_calib[(iva*VA_CHAN+ich)]/SIGMA_STEP)]++;
-    }
-    sigma_mean[iva]=GetCleanedSigma(sigma_dist);
-  }
-  bool IsAlive[NCHAN];
-  for(int ichan=0;ichan<NCHAN;++ichan){
-    if(gausindex[ichan]<=GAUSINDEX_CUT&& sigma3_calib[ichan]<SIGMAHOT) IsAlive[ichan]=1;
+    infile >> mean2_calib[ichan] >> sigma3_calib[ichan] >>gausindex[ichan]>> CNmask[ichan];
+     if(gausindex[ichan]<=GAUSINDEX_CUT&& sigma3_calib[ichan]<SIGMAHOT) IsAlive[ichan]=1;
     else IsAlive[ichan]=0;
   }
-  
 
   // Opening data file
   LEvRec0File input(namefile.c_str());
+  
   LEvRec0 ev;
   input.SetTheEventPointer(ev);
   gStyle->SetPalette(1);
@@ -565,28 +267,7 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
   Stream_root<<outputname<<".root";
   
   TFile *output2=new TFile(Stream_root.str().c_str(),"RECREATE");
-  
-  
-  
-  TH1D *good_chan_hist=new TH1D("good_chan_hist","",NCHAN,0,NCHAN);
-  TH1D *meanmean_hist[N_LADDER];
-  for(int ld=0;ld<N_LADDER;++ld)
-    meanmean_hist[ld]=new TH1D(Form("Mean_value_ladder_%d",ld),Form("Mean_value_ladder_%d",ld),N_PKG,0,N_PKG);
-  
-  
-  TH2D *mean1_histo=new TH2D("mean1_2d","",NCHAN,0.,NCHAN,3000,0,3000);
-  TH2D *sigma1_histo=new TH2D("sigma1_2d","",NCHAN,0,NCHAN,500,0,40.);
-  TH2D *mean2_histo=new TH2D("mean2_2d","",NCHAN,0.,NCHAN,3000,0,3000);
-  TH2D *sigma2_histo=new TH2D("sigma2_2d","",NCHAN,0,NCHAN,500,0,40.);
-  TH2D *sigma3_histo=new TH2D("sigma3_2d","",NCHAN,0.,NCHAN,500,0.,40.);
-
- 
   TH2D *common_noise_total=new TH2D("common_noise_total","",N_VA,0,N_VA,500,-100,100);
-
-  TH2D *total_counts_adc=new TH2D("total_counts_adc","total_counts_adc",NCHAN,0,NCHAN,3000,0,3000);
-  TH2D *total_counts_mean=new TH2D("total_counts_mean","total_counts_mean",NCHAN,0,NCHAN,1000,-500,500);
-  TH2D *total_counts_clean=new TH2D("total_counts_clean","total_counts_clean;chan;[ADC]",NCHAN,0,NCHAN,3000,-500,500);
- 
 
   TH2D *significativit_histo=new TH2D("significativit","",NCHAN,0,NCHAN,200,-50,50.);
   TH2D *clusterseed_histo=new TH2D("clusterseed","",1000,0,1000,700,-200,500);
@@ -734,107 +415,65 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   cluster_shape_n_histo[ld]=new TH2D(Form("cluster_shape_n_%d",ld),Form("cluster_shape_n_%d;position;SN",ld),5,0,5,100,-10,50);
   }
 
-  TH1D *calibration_comp_mean=new TH1D("mean_comparison","mean_comparison;chan;ADC",NCHAN,0,NCHAN);
-  TH1D *calibration_comp_sigma=new TH1D("sigma_comparison","sigma_comparison;chan;",NCHAN,0,NCHAN);
-  
-  double *counts_clean[NCALIBEVENTS];
-  //for(int ichan=0;ichan<NCHAN;++ichan)
-  double *CN_matrix_clean[NCALIBEVENTS];
-  for(int iev=0;iev<NCALIBEVENTS;++iev){
-    CN_matrix_clean[iev]= new double[N_VA];
-    counts_clean[iev]=new double[NCHAN];
-
-  }
-
-  double mean2_data[NCHAN];
-  double sigma3_data[NCHAN];
-  
-  for(int ichan=0;ichan<NCHAN;++ichan){
-    mean2_data[ichan]=0.;
-    sigma3_data[ichan]=0.;
-  }
-
+  //matrices definition
   short *data[NCHAN];
   for(int ichan=0;ichan<NCHAN;++ichan)
     data[ichan]=new short[NCALIBEVENTS];
   short *data2[NCALIBEVENTS];
-  for(int iev=0;iev<NCALIBEVENTS;++iev)
+  double *CN_matrix_clean[NCALIBEVENTS];
+  double *counts_clean[NCALIBEVENTS];
+  for(int iev=0;iev<NCALIBEVENTS;++iev){
     data2[iev]=new short[NCHAN];
+    CN_matrix_clean[iev]= new double[N_VA];
+    counts_clean[iev]=new double[NCHAN];
+  }
 
+  //eta vectors definition
   double step_eta=(double)ETARANGE/(double)ETASTEP;
-    double basement[ETASTEP];
-    int eta_dist_p[N_LADDER][ETASTEP];
-    int eta_dist_n[N_LADDER][ETASTEP];
-    for(int ch=0;ch<ETASTEP;++ch){
-      basement[ch]=ch*step_eta;
-      //std::cout<<ch<<"\t"<<ch*step_eta-1<<std::endl;
-      for(int ladder=0;ladder<N_LADDER;++ladder){
-	eta_dist_p[ladder][ch]=0;
-	eta_dist_n[ladder][ch]=0;
-      }
+  double basement[ETASTEP];
+  int eta_dist_p[N_LADDER][ETASTEP];
+  int eta_dist_n[N_LADDER][ETASTEP];
+  for(int ch=0;ch<ETASTEP;++ch){
+    basement[ch]=ch*step_eta;
+    for(int ladder=0;ladder<N_LADDER;++ladder){
+      eta_dist_p[ladder][ch]=0;
+      eta_dist_n[ladder][ch]=0;
     }
-    std::stringstream Stream_out;
-    Stream_out<<outputname<<"_events.txt";
-    std:: ofstream outputfile(Stream_out.str().c_str());
+  }
 
-    std::vector <std::vector <event> > storage;  //good events storage
-    //processing events
+  std::stringstream Stream_out;
+  Stream_out<<outputname<<"_events.txt";
+  std:: ofstream outputfile(Stream_out.str().c_str());
 
-  for(int ipk=0;ipk<N_PKG;++ipk){
-    //std::cout<<"Processing events. Step "<<ipk<<std::endl;
+  std::vector <std::vector <event> > storage; //good events storage
+  for(int ipk=0;ipk<N_PKG;++ipk){//loop on group of events
+    //reading the data from file
     for(int iev=0; iev<NCALIBEVENTS; ++iev){
       input.GetEntry(NCALIBEVENTS*ipk+iev);
       for(int ichan=0;ichan<NCHAN;ichan++){
 	data[ichan][iev]=ev.strip[ichan];
-	//total_counts_adc->Fill(ichan,data[ichan][iev]);
       }
     }
     for(int iev=0;iev<NCALIBEVENTS;++iev){
       for(int ichan=0;ichan<NCHAN;ichan++)
 	data2[iev][ichan]=data[ichan][iev];
     }
-    //common noise calculation
+    //CN calculation
     double co_no[NCALIBEVENTS];
     for(int iev=0;iev<NCALIBEVENTS;++iev)
       co_no[iev]=0.;
-
-    for(int evt=0;evt<NCALIBEVENTS;evt++){
-      common_noise_clean(data2[evt],mean2_calib,sigma2_calib,sigma_mean,&CN_matrix_clean[evt][0],IsAlive);
-    }
-
-    for(int iev=0;iev<NCALIBEVENTS;++iev){
-      for(int ichan=0;ichan<NCHAN;++ichan)
-	counts_clean[iev][ichan]=0.;
-    }
+    for(int evt=0;evt<NCALIBEVENTS;evt++)
+      ComputeCN(data2[evt],mean2_calib,CNmask,&CN_matrix_clean[evt][0]);
     
-    //std::cout<<"Check1"<<std::endl;
-    //std::cout<<"ev "<<0<<"chan "<<3001    <<"data "<<data[3001][0]<<"mean2 "<<mean2_calib[3001]<<"CN "<<CN_matrix_clean[0][3001/VA_CHAN]<<std::endl;
-
+    //clean events
     for(int iev=0;iev<NCALIBEVENTS;++iev){
       for(int ichan=0;ichan<NCHAN;++ichan){
 	counts_clean[iev][ichan]=(data[ichan][iev]-mean2_calib[ichan]-CN_matrix_clean[iev][ichan/VA_CHAN]);
-	total_counts_clean->Fill(ichan,counts_clean[iev][ichan]);
-	//total_counts_mean->Fill(ichan,data[ichan][iev]-mean2_calib[ichan]);
-       }
-     }
-    //std::cout<<"Check2"<<std::endl;
- 
-    /*
-    //Calculation of sigma without common noise.
-     for(int iva=0;iva<N_VA;++iva){
-       for(int ievt=0;ievt<NCALIBEVENTS;++ievt)
-	 co_no[ievt]=CN_matrix_clean[ievt][iva];
-       for(int j=0;j<VA_CHAN;j++){
-	 sigma3_data[iva*VA_CHAN+j]=sigma_clean(data[iva*VA_CHAN+j],co_no,mean2_calib[iva*VA_CHAN+j],(SIGMA_CUT_SIGMA*sigma2_calib[iva*VA_CHAN+j]),NCALIBEVENTS);
-	 //sigma3_data[iva*VA_CHAN+j]+=sigma3_data[iva*VA_CHAN+j];
-       }
-     }
-    */
+      }
+    }
     std::vector< event > clev; // clever OR clean event 
-    //std::cout<<"Check"<<std::endl;
     for(int iev=0;iev<NCALIBEVENTS;++iev){
       std::vector<LTrackerCluster> *clusters=GetClusters(counts_clean[iev],sigma3_calib);
-      //std::cout<<"Check. Event N "<<iev<<" Package "<<ipk<<std::endl;
       event myevent;
       for(int ev=0;ev<clusters->size();++ev){
 	int ladder=ChanToLadder(clusters->at(ev).seed);
@@ -848,133 +487,28 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	
 	myevent.cls.push_back(clusters->at(ev));
       }
-      clev.push_back(myevent);
-      
-      /*
-      event myevent;
-      myevent.entry = ipk*NCALIBEVENTS+iev;
-      for(int ichan=0;ichan<NCHAN;++ichan){
-	if (!IsAlive[ichan]) continue;
-	double count=counts_clean[ichan][iev];
-	double sigma=sigma3_calib[ichan];
-	double sign= count/sigma;
-	if(sign<GE_THRESHOLD) continue;	
-	good_chan_hist->Fill(ichan);
-	// Open window for cluster identification *******
-	std::vector< double > window_count;
-	std::vector< double > window_sigma;
-	std::vector< double > window_sign;
-	for(int iw=0; iw<NEV_WINDOW; ++iw) {
-	  
-	  double mycount = counts_clean[ichan+iw][iev];//(data[ichan+iw][iev]-mean2_calib[ichan+iw]-CN_matrix_clean[iev][(ichan+iw)/VA_CHAN]);
-	  double mysigma = sigma3_data[ichan+iw];
-	  window_count.push_back(mycount);
-	  window_sigma.push_back(mysigma);
-	  window_sign.push_back(mysigma!=0. ? mycount/mysigma : 0.);
-	  if((ichan+iw+1)%384==0) break;
-	}
-	int wsize=window_count.size();
-	//***********************************************
-	int maxind=-999;
-	double maxsign=-999.;
-	for(int il=0; il<wsize; ++il) {
-	  if(window_sign.at(il)>maxsign) {
-	    maxind=il;
-	    maxsign=window_sign.at(il);
-	  }
-	}
-
-	int max2ind=999;
-	double max2sign=-999.;
-	for(int il=0; il<wsize; ++il) {
-	  if(window_sign.at(il)>max2sign && il!= maxind) {
-	    max2ind=il;
-	    max2sign=window_sign.at(il);
-	  }
-	}
-
-	// Seed your life... *****************************
-	/*
-	int seed = -999;
-	
-	// Case for dead channel in between
-	if((maxind-max2ind==2 || max2ind-maxind==2) && max2sign>3. )seed=ichan+(maxind+max2ind)/2;//WARNING!  
-	else if(abs(maxind-max2ind)==1 ) seed=maxind+ichan;
-	else seed=((max2ind<maxind && max2sign>GE_THRESHOLD) ? max2ind+ichan : maxind+ichan);
-	*
-	int seed=maxind+ichan;
-
-	// ***********************************************
-	// Fill cluster data *****************************
-
-	LTrackerCluster mycluster;
-	mycluster.seed = seed;
-	for(int iii=0; iii<CLUSTERCHANNELS; ++iii) {
-	  int cchan = seed-CLUSTERCHANNELS/2+iii;// remember that the shift depends on clustersize!!
-	  bool SameLP_FLAG = SameLadderPlane(seed, cchan);
-	  if((IsAlive) && SameLP_FLAG ){
-	    //if(counts_clean[cchan][iev]/sigma3_calib[cchan]>3.){
-	      mycluster.count[iii] =  counts_clean[cchan][iev];
-	      mycluster.sigma[iii] =  sigma3_calib[cchan];
-	      mycluster.sn[iii] = counts_clean[cchan][iev]/sigma3_calib[cchan];
-	      //}
-	  }
-	  else{//Is the best choice???
-	    mycluster.count[iii] = 0.;
-	    mycluster.sigma[iii] = 0.;
-	    mycluster.sn[iii] = 0.;
-	    
-	  }
-
-	}
-	//oldeta
-	//mycluster.eta=(mycluster.count[3]>mycluster.count[1] ? (mycluster.count[3]-mycluster.count[2])/(mycluster.count[3]+mycluster.count[2]) : (mycluster.count[2]-mycluster.count[1])/(mycluster.count[2]+mycluster.count[1]));
-
-	//symmethrize eta!
-	if(mycluster.sn[CLUSTERCHANNELS/2+1]>=0. || mycluster.sn[CLUSTERCHANNELS/2-1]>=0.)
-	  mycluster.eta=(mycluster.count[CLUSTERCHANNELS/2+1]>mycluster.count[CLUSTERCHANNELS/2-1] ? (mycluster.count[CLUSTERCHANNELS/2+1])/(mycluster.count[CLUSTERCHANNELS/2+1]+mycluster.count[CLUSTERCHANNELS/2]) : (mycluster.count[CLUSTERCHANNELS/2])/(mycluster.count[CLUSTERCHANNELS/2]+mycluster.count[CLUSTERCHANNELS/2-1]));
-	else  mycluster.eta=-999.;
-*/
-      /*
-	 int ladder=ChanToLadder(mycluster.seed);
-      if(mycluster.eta>=ETAMIN && mycluster.eta<=ETAMAX){
-      	if(ChanToSide(mycluster.seed)) //n cases
-	   ++eta_dist_n[ladder][(int)(ETASTEP*(mycluster.eta)/ETARANGE)];	 
-        else 
-	  ++eta_dist_p[ladder][(int)(ETASTEP*(mycluster.eta)/ETARANGE)];
-	}
-  
-
-	myevent.cls.push_back(mycluster);
-	ichan = seed+(CLUSTERCHANNELS); // very important! Restart after the cluster
-      }
-      
       if(myevent.cls.size()>0) clev.push_back(myevent);
-      */
     }
     storage.push_back(clev);
-    //}
-    
-  for(int iev=0;iev<NCALIBEVENTS;iev++){
-    for(int iva=0;iva<N_VA;iva++){
-      common_noise_total->Fill(iva,CN_matrix_clean[iev][iva]);
-    }
-  }
-  }
-  double f_eta_p[N_LADDER][ETASTEP];
-  double f_eta_n[N_LADDER][ETASTEP];
-    for(int ladder=0;ladder<N_LADDER;++ladder){
-      f_eta(ETASTEP,basement,eta_dist_n[ladder],f_eta_n[ladder]);
-      f_eta(ETASTEP,basement,eta_dist_p[ladder],f_eta_p[ladder]);
-      for (int ch=0;ch<ETASTEP;++ch){      
-	f_eta_p_hist[ladder]->SetBinContent(ch+1,f_eta_p[ladder][ch]);
-	f_eta_n_hist[ladder]->SetBinContent(ch+1,f_eta_n[ladder][ch]);
+    for(int iev=0;iev<NCALIBEVENTS;iev++){
+      for(int iva=0;iva<N_VA;iva++){
+	common_noise_total->Fill(iva,CN_matrix_clean[iev][iva]);
       }
     }
-    
-    //Now I want to correct the cluster using the f(eta). I stored all the vectors of clusters in a vector to avoid a loop on the events. 
-    
-    for(int vec=0;vec<(int)storage.size();++vec){
+  }//ipkg ends here!!
+
+  //f_eta calculation
+  double f_eta_p[N_LADDER][ETASTEP];
+  double f_eta_n[N_LADDER][ETASTEP];
+  for(int ladder=0;ladder<N_LADDER;++ladder){
+    f_eta(ETASTEP,basement,eta_dist_n[ladder],f_eta_n[ladder]);
+    f_eta(ETASTEP,basement,eta_dist_p[ladder],f_eta_p[ladder]);
+    for (int ch=0;ch<ETASTEP;++ch){      
+      f_eta_p_hist[ladder]->SetBinContent(ch+1,f_eta_p[ladder][ch]);
+      f_eta_n_hist[ladder]->SetBinContent(ch+1,f_eta_n[ladder][ch]);
+    }
+  }
+  for(int vec=0;vec<(int)storage.size();++vec){
       for(int nev=0;nev<(int)(storage.at(vec).size());++nev){// I want to correct values for f_eta and fill all the histograms here.
 	double x_p[N_LADDER]={0.};
 	double x_n[N_LADDER]={0.};
@@ -1140,17 +674,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
 	}
       }
     }
-
-  mean1_histo->Write();
-  sigma1_histo->Write();
-  mean2_histo->Write();
-  sigma2_histo->Write();
-  sigma3_histo->Write();
   common_noise_total->Write();
-  total_counts_adc->Write();
-  total_counts_mean->Write();
-  total_counts_clean->Write();
-  good_chan_hist->Write();
   significativit_histo->Write();
   clusterseed_histo->Write();
   seed_m1_histo->Write();
@@ -1163,9 +687,11 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   deltax_central_ladder_n_hist->Write();
   deltax_central_ladder_noeta_p_hist->Write();
   deltax_central_ladder_noeta_n_hist->Write();
-
+  theta_central_ladder_p_hist->Write();
+  theta_central_ladder_n_hist->Write();
+  
   for(int ld=0;ld<N_LADDER;++ld){
-    meanmean_hist[ld]->Write();
+
     sum_adc_p_hist[ld]->Write();
     sum_adc_n_hist[ld]->Write();
     sum_adc_p_corr_hist[ld]->Write();
@@ -1203,18 +729,6 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
     charge_center_corr_p_hist[ld]->Write();
     charge_center_corr_n_hist[ld]->Write();
   }
-  //calibration_comp_mean->Write();
-  //calibration_comp_sigma->Write();
-  
-
-  /*
-  seed_frac_sum_histo->Write();
-  seed_frac_m1_histo->Write();
-  seed_frac_p1_histo->Write();
-  sign_frac_sum_histo->Write();
-  sign_frac_m1_histo->Write();
-  sign_frac_p1_histo->Write();
-  */
   std::stringstream Stream2;
   std::stringstream Stream2_open;
   std::stringstream Stream2_close;
@@ -1232,8 +746,9 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   //display_ladders2D(sigma3_histo,"sigma_3",";chan;")->Print(Stream2.str().c_str());
   // display_ladders2D(total_counts_adc,"tot_counts",";chan;ADC")->Print(Stream2.str().c_str());
   //display_ladders2D(mean2_histo,"mean_2",";chan;ADC")->Print(Stream2.str().c_str());
-  //display_ladders2D(total_counts_mean,"total_counts_mean",";chan;")->Print(Stream2.str().c_str());
-  display_ladders2D(total_counts_clean,"total_counts_clean",";chan;ADC clean")->Print(Stream2.str().c_str());
+  //display_ladders2D(total_counts_mean,"total_counts_mean",";chan;")->Print(Stream2ll
+  .str().c_str());
+  //  display_ladders2D(total_counts_clean,"total_counts_clean",";chan;ADC clean")->Print(Stream2.str().c_str());
   display_ladders2D(significativit_histo,"SN",";chan;SN")->Print(Stream2.str().c_str());
   //display_ladders1D(good_chan_hist,"good_channel",";chan;")->Print(Stream2.str().c_str());
   drawing2D(clusterseed_histo,"correlation plot;seed [ADC];(seed+1)+(seed-1) [ADC]")->Print(Stream2.str().c_str());
@@ -1330,48 +845,7 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   drawing1D( theta_central_ladder_n_hist,0)->Print(Stream4.str().c_str());
   out->Print(Stream4_close.str().c_str());
 
-  
-  
-}
-
-void track_reconstruction(std::string namefile){
-  gROOT->Reset();
-  gDirectory->GetList()->Delete();
-
-  //reading and storing calibration values
-  std::ifstream infile (namefile.c_str(),std::ifstream::in);
-  /*  need them later...
-      std::vector ladder <int>;
-      std::vector plan <int>;
-      std::vector position <double>;
-  */
-  int ladder_index;
-  int side_index;
-  int ev_index;
-  double real_position;
-
-  while(!infile.eof()){
-    infile >> ev_index >> ladder_index >> side_index >> real_position;
-
-
-  }
-
-
-
-
-}
     
-
-
-
-void run1(){
-  analysis("./Servo-OFF/Run-20161112/20161112-112421-Run_3C_37MeV_SERVO_EASIROC2.root","output_cal.txt","./run_22_12/30MeV");
-  analysis("./Servo-OFF/Run-20161112/RUN_3C_51MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/50MeV");
-  analysis("./Servo-OFF/Run-20161111/RUN_POS4XC_70MeV_EASIROC2_TrigMask0_SERVO_HOT.root","calib_70MeV.txt","./run_22_12/70MeV");
-  analysis("./Servo-OFF/Run-20161112/RUN_3C_228MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/228MeV");
- analysis("./Servo-OFF/Run-20161112/RUN_3C_100MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/100MeV");
-  analysis("./Servo-OFF/Run-20161112/RUN_3C_125MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/125MeV");
-analysis("./Servo-OFF/Run-20161112/RUN_3C_154MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/154MeV");
-  analysis("./Servo-OFF/Run-20161112/RUN_3C_174MeV_SERVO_EASIROC2_HOT.root","output_cal.txt","./run_22_12/174MeV");
-
+  
 }
+
