@@ -6,7 +6,6 @@
 #include <iostream>
 
 double LTrackerCluster::ComputeEta() {
-  //int seedIndex=CLUSTERCHANNELS/2+1; False! The count of channels starts from 0!!!
   int seedIndex=CLUSTERCHANNELS/2;
   int max2Index=seedIndex;
   if(IsAtStartBorder()) ++max2Index;
@@ -15,6 +14,18 @@ double LTrackerCluster::ComputeEta() {
   
   double denominator=count[seedIndex]+count[max2Index];
   double numerator=(max2Index>seedIndex ? count[max2Index] : count[seedIndex]);
+
+  eta = numerator/denominator;
+  etaCounts=denominator;
+  
+  return eta;
+}
+
+double LTrackerCluster::ComputeEta3() {
+  int seedIndex=CLUSTERCHANNELS/2;
+  
+  double numerator=/*0*count[seedIndex-1]+*/count[seedIndex]+2*count[seedIndex+1];
+  double denominator=count[seedIndex-1]+count[seedIndex]+count[seedIndex+1];
 
   eta = numerator/denominator;
   etaCounts=denominator;
@@ -73,7 +84,8 @@ LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const
       sn[i]=count[i]/sigma[i];
     }
   }
-  ComputeEta();
+  //  ComputeEta();
+  ComputeEta3();
 }
 
 double LTrackerCluster::GetSides(const double SideThreshold){

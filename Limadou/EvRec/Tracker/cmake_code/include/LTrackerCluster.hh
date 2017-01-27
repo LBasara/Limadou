@@ -32,8 +32,10 @@ public:
   inline double GetEta(){return eta;};
   inline double GetEtaCounts(){return etaCounts;};
 
+  
 private:
   double ComputeEta();
+  double ComputeEta3();
   double eta;
   double etaCounts;
 };
