@@ -26,11 +26,11 @@ file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 
 
 #---Create  a main program using the library
-add_executable(event main.cc ${sources})
+add_executable(analysis_ester main.cc ${sources})
 add_executable(CalibrateTracker CalibrateTracker.cc ${sources})
 add_executable(analysis_follega analysis_follega.cc ${sources})
 
-target_link_libraries(event ${ROOT_LIBRARIES})
+target_link_libraries(analysis_ester ${ROOT_LIBRARIES})
 target_link_libraries(CalibrateTracker ${ROOT_LIBRARIES})
 target_link_libraries(analysis_follega ${ROOT_LIBRARIES})
 #target_link_libraries(Main Event)
