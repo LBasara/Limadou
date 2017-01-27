@@ -4,6 +4,7 @@
 #include "LTrackerTools.hh"
 #include "LTrackerCluster.hh"
 #include <iostream>
+#include <cmath>
 
 double LTrackerCluster::ComputeEta() {
   int seedIndex=CLUSTERCHANNELS/2;
@@ -14,7 +15,7 @@ double LTrackerCluster::ComputeEta() {
   
   double denominator=count[seedIndex]+count[max2Index];
   double numerator=(max2Index>seedIndex ? count[max2Index] : count[seedIndex]);
-
+ 
   eta = numerator/denominator;
   etaCounts=denominator;
   
@@ -24,7 +25,7 @@ double LTrackerCluster::ComputeEta() {
 double LTrackerCluster::ComputeEta3() {
   int seedIndex=CLUSTERCHANNELS/2;
   
-  double numerator=/*0*count[seedIndex-1]+*/count[seedIndex]+2*count[seedIndex+1];
+   double numerator=/*0*count[seedIndex-1]+*/count[seedIndex]+2*count[seedIndex+1];
   double denominator=count[seedIndex-1]+count[seedIndex]+count[seedIndex+1];
 
   eta = numerator/denominator;
@@ -84,7 +85,7 @@ LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const
       sn[i]=count[i]/sigma[i];
     }
   }
-  //  ComputeEta();
+  //ComputeEta();
   ComputeEta3();
 }
 
