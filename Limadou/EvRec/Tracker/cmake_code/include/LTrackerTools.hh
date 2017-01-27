@@ -17,6 +17,7 @@ int ChanToLadderChan(const int Chan); // channel inside the ladder
 int ChanToSideChan(const int Chan); // channel inside the side
 std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma);
 void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN);
+double* Symmetrise(const int inpsize, const double* inp);
 
 
 #endif

@@ -146,3 +146,17 @@ void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask,
   return;
 }
 
+
+double* Symmetrise(const int inpsize, const double* inp) {
+  if(inpsize<0) return 0;
+  int CENTER=inpsize/2;
+  double *result = new double[inipsize];
+  for(int i=0; i<CENTER; ++i) {
+    result[i]=(inp[i]+inp[inpsize-1-i])*0.5;
+    result[inpsize-1-i]=result[i];
+  }
+  
+  if(inpsize%2) result[CENTER] = inp[CENTER]; // odd case
+  
+  return result;
+} 
