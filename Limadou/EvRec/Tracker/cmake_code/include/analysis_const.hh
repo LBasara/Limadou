@@ -23,8 +23,8 @@ const double SIGMAHOT=30.;
 
 //eta manage
 
-const int ETASTEP=200;
-const int ETAMAX=2;
+const int ETASTEP=400;
+const int ETAMAX=1;
 const int ETAMIN=0;
 const int ETARANGE=ETAMAX-ETAMIN;
 #endif
