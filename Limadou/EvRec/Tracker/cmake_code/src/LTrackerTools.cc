@@ -1,6 +1,7 @@
 #include "LTrackerTools.hh"
 #include "detector_const.hh"
 #include "LTrackerCluster.hh"
+#include "LTrackerMask.hh"
 #include <algorithm>
 #include <math.h>
 #include <iostream>
@@ -62,15 +63,22 @@ int ChanToSideChan(const int Chan) {
 }
 
 
-std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma) {
+std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma, const bool *maskIn=0) {
   
   auto result= new std::vector<LTrackerCluster>;
   double sn[NCHAN];
   for(int ich=0; ich<NCHAN; ++ich) sn[ich]=cont[ich]/sigma[ich];
+
+  // Prepare mask even for default case
+  double mask[NCHAN];
+  if(maskIn==0) for(int ich=0; ich<NCHAN; ++ich) mask[ich]=true;
+  else for(int ich=0; ich<NCHAN; ++ich) mask[ich]=maskIn[ich];
+  // Apply the mask
+  for(int ich=0; ich<NCHAN; ++ich) sn[ich]*=(static_cast<double>(mask[ich]));
   
   // Main loop
-    for(int ich=0; ich<NCHAN; ++ich) {
-      //for(int ich=NCHAN-1; ich>-1; --ich) {
+  for(int ich=0; ich<NCHAN; ++ich) {
+    //for(int ich=NCHAN-1; ich>-1; --ich) {
     if(sn[ich]<CLFINDTHRESHOLD) continue;
  
     int maxindex1=ich;
@@ -103,9 +111,12 @@ std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigm
 
     // Check if the maximum pair is suitable for cluster finding
     // Compute the estimator
-    double numerator=(cont[maxindex1]+cont[maxindex2]);
-    double denominator=sqrt(sigma[maxindex1]*sigma[maxindex1]+
-			    sigma[maxindex2]*sigma[maxindex2]);
+    double numerator=(cont[maxindex1]*static_cast<double>(mask[maxindex1])+
+		      cont[maxindex2]*static_cast<double>(mask[maxindex2]));
+    double denominator=sqrt(
+			    sigma[maxindex1]*sigma[maxindex1]*static_cast<double>(mask[maxindex1])+
+			    sigma[maxindex2]*sigma[maxindex2]*static_cast<double>(mask[maxindex2])
+			    );
     double meter=numerator/denominator;
     // Compare with the threshold
     if(meter<CLSNTHRESHOLD) {

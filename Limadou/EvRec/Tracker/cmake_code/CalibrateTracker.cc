@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 
   /*
   // Test read-write
-  cal->Read(argv[2]);
+  LTrackerCalibration *cal=LTrackerCalibration::Read(argv[2]);
   cal->Write("ciccio.cal");
   */
 

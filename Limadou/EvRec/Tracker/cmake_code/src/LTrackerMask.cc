@@ -9,6 +9,12 @@ LTrackerMask::LTrackerMask(const bool *mIN) {
   for(int iChan=0; iChan<NCHAN; ++iChan) m[iChan]=mIN[iChan];
 }
 
+bool* LTrackerMask::GetBool(void) {
+  bool *result = new bool[NCHAN];
+  for(int iChan=0; iChan<NCHAN; ++iChan) result[iChan]=m[iChan];
+  return result;
+}
+
 LTrackerMask& LTrackerMask::operator=(const LTrackerMask& other) {
   for(int iChan=0; iChan<NCHAN; ++iChan) m[iChan]=other.Get(iChan);
   return *this;

@@ -15,7 +15,8 @@ int ChanToLadderPlane (const int nChan); // return 0,1,....11
 bool SameLadderPlane(const int Chan1, const int Chan2);
 int ChanToLadderChan(const int Chan); // channel inside the ladder
 int ChanToSideChan(const int Chan); // channel inside the side
-std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma);
+std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma, const bool *mask);
+inline std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma){return GetClusters(cont, sigma, 0);};
 void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN);
 
 

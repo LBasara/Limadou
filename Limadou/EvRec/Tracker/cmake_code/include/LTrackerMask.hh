@@ -8,6 +8,7 @@ class LTrackerMask {
 public:
   LTrackerMask();
   LTrackerMask(const bool *mIN);
+  bool* GetBool(void);
   inline bool& operator[](std::size_t idx) {return m[idx];};
   inline bool Get(std::size_t idx) const {return m[idx];};
   LTrackerMask& operator=(const LTrackerMask& other);
