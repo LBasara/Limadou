@@ -17,7 +17,7 @@ const double MAX_SIGMA_NOISE_LEVEL=4;
 const double NSIGMABOOL=3.;
 const double GAUSSTHRESHOLD=0.0027;
 const double GAUSINDEX_CUT=3.;
-const double SIGMAHOT=30.;
+const double SIGMAHOT=20.;
 
 
 

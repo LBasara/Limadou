@@ -12,6 +12,7 @@ const int NRATEMETER = 9; // ?????????????
 const int NTRIGSCINT=6;
 const int N_VA=NCHAN/VA_CHAN;
 
+const int N_SIDES=2;
 const int N_LADDER=6;
 const int LADDER_BIN=NCHAN/N_LADDER;
 const double PITCH=182.e-6;
