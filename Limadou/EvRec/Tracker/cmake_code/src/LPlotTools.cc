@@ -147,7 +147,7 @@ TCanvas * Plot_6histo_1d(TH1F * histo[6], string xaxis, string yaxis, string log
     c6 -> cd(pos[w]+1);
     histo[w]->GetXaxis()->SetTitle(xaxis.c_str());
     histo[w]->GetYaxis()->SetTitle(yaxis.c_str());
-    gStyle -> SetOptStat(0);
+    //gStyle -> SetOptStat(0);
     if(log=="log") gPad->SetLogy();
     histo[w]->Draw();
   }
@@ -161,7 +161,7 @@ TCanvas * Plot_6histo_profile(TProfile * histo[6], string xaxis, string yaxis, s
     c6 -> cd(pos[w]+1);
     histo[w]->GetXaxis()->SetTitle(xaxis.c_str());
     histo[w]->GetYaxis()->SetTitle(yaxis.c_str());
-    gStyle -> SetOptStat(0);
+    //gStyle -> SetOptStat(0);
     if(log=="log") gPad->SetLogy();
     histo[w]->Draw();
   }

@@ -85,8 +85,8 @@ LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const
       sn[i]=count[i]/sigma[i];
     }
   }
-  //ComputeEta();
-  ComputeEta3();
+  ComputeEta();
+  //ComputeEta3();
 }
 
 double LTrackerCluster::GetSides(const double SideThreshold){

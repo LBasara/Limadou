@@ -1,6 +1,7 @@
 #include "LEvRec0.hh"
 #include "LTrackerTools.hh"
 #include "LTrackerCluster.hh"
+#include "LTrackerFittingTools.hh"
 #include "analysis_follega.hh"
 
 #include <iostream>
@@ -127,7 +128,7 @@ double GetCleanedSigma(TH1F *h) {
 // it fits the counts vs. eta profile and it gets the parabola parameters
 void Fitting_func(TProfile *histo[6], double par0[6], double par1[6], double par2[6]){
 	for (int i=0; i< 6; i++){
-		TF1 * myfit= new TF1("myfit","[0]+[1]*x+[2]*x*x", -1, 1);
+		TF1 * myfit= new TF1("myfit","[0]+[1]*x+[2]*x*x", -0.1, 1.1);
 		histo[i]->Fit("myfit");
 		par0[i] = myfit->GetParameter("p0");
 		par1[i] = myfit->GetParameter("p1");
@@ -176,26 +177,135 @@ Double_t langaufun(Double_t *x, Double_t *par) {
 
       return (par[2] * step * sum * invsq2pi / par[3]);
 }
+
+Double_t langaufunmean(Double_t *x, Double_t *par) {
+      // Numeric constants
+      Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+      Double_t mpshift  = -0.22278298;       // Landau maximum location
+
+      // Control constants
+      Double_t np = 100.0;      // number of convolution steps
+      Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
+
+      // Variables
+      Double_t xx;
+      Double_t mpc;
+      Double_t fland;
+      Double_t sum = 0.0;
+      Double_t xlow,xupp;
+      Double_t step;
+      Double_t i;
+
+      // MP shift correction
+      mpc = par[1] - mpshift * par[0];
+
+      // Range of convolution integral
+      xlow = x[0] - sc * par[3];
+      xupp = x[0] + sc * par[3];
+
+      step = (xupp-xlow) / np;
+
+      // Convolution integral of Landau and Gaussian by sum
+      for(i=1.0; i<=np/2; i++) {
+         xx = xlow + (i-.5) * step;
+         fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+         sum += fland * TMath::Gaus(x[0],xx,par[3]);
+
+         xx = xupp - (i-.5) * step;
+         fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+         sum += fland * TMath::Gaus(x[0],xx,par[3]);
+      }
+
+      return (x[0]*par[2] * step * sum * invsq2pi / par[3]);
+}
 // langau fit "ad hoc" for protons
-void Langau(TH1F *histo[6], double langau_MPV[6], double langau_sigma[6]){
+void Langau(TH1F *histo[6], double langau_Mean[6], double langau_Sigma[6], double chi2red[6], double inf, double sup){
 	for (int i=0; i< 6; i++){
+		if ((i!=2)&&(i!=3)){
+			langau_Mean[i]=0;
+			langau_Sigma[i]=0;
+			chi2red[i]=0;
+		} else{
 		float max_bin = histo[i]->GetMaximumBin();
 		float max_center = histo[i]->GetBinCenter(max_bin);
-		float integral = histo[i]->Integral(0.,500.);
-		TF1 *langau = new TF1("langau","langaufun",0.,500.,4);
-		Double_t startvalues[4];
-		startvalues[0]=16; 
-		startvalues[1]=max_center; 
-		startvalues[2]=integral;
-		startvalues[3]=6.;
-		langau->SetParameters(startvalues);
-		histo[i]->Fit("langau","","",0.,500.);
-		//True line 
-		//langau_MPV[i] = langau->GetParameter("p1");
-		//Test line, trying to get the mean
-		langau_MPV[i] = histo[i]->GetMean();
-		langau_sigma[i]= langau->GetParameter("p0");
-		std::cout<<"**********ladder_"<<i<<" "<<langau_MPV[i]<<std::endl;
+		float integral = histo[i]->Integral(inf,sup);
+		TF1 *langau = new TF1("langau",langaufun,inf,sup,4);
+		Double_t values[4];
+		values[0]=16; 
+		values[1]=max_center; 
+		values[2]=integral;
+		values[3]=6.;
+		langau->SetParameters(values);
+		histo[i]->Fit("langau","","",inf,sup);
+		values[0] = langau->GetParameter("p0");
+		values[1] = langau->GetParameter("p1");
+		values[2] = langau->GetParameter("p2");
+		values[3] = langau->GetParameter("p3");
+		TF1 *langaumean = new TF1("langaumean",langaufunmean,inf,sup,4);
+		langaumean->SetParameters(values);
+		double fitintegral = langau->Integral(inf,sup);
+		double fitmean = langaumean->Integral(inf,sup);
+
+		std::cout<<"------------------------>"
+				 <<fitmean/fitintegral<<std::endl;
+		//Test line
+		langau_Mean[i] = fitmean/fitintegral;
+		langau_Sigma[i]= GetMeanUncertanty(langau_Mean[i],langau->GetParameter(1),langau->GetParError(1),langau->GetParameter(0),langau->GetParError(0),langau->GetParameter(3),langau->GetParError(3),langau->GetParameter(2),langau->GetParError(2), inf, sup);//sqrt(pow(langau->GetParameter("p0"),2)+pow(langau->GetParameter("p3"),2))/sqrt(histo[i]->GetEntries());
+		chi2red[i]=langau->GetChisquare();
+		std::cout<<"**********ladder_"<<i<<" "<<langau_Mean[i]<<std::endl;
+	}
 	}
 	return;
 }
+
+double GetMeanUncertanty(double mean, double MPV, double err_MPV, double sig_l, double err_sig_l, double sig_g, double err_sig_g, double area, double err_area, double inf, double sup){
+	std::vector<double> resid;
+	int dim1=10;
+	int dim2=10;
+	double MPV_L[dim1];
+	double SIGMA_L[dim1];
+	double SIGMA_G[dim2];
+	double AREA_L[dim2];
+	int cont = 0;
+	while(cont<dim1){
+		MPV_L[cont] = (MPV - err_MPV + 2*err_MPV/(dim1-1)*cont);
+		SIGMA_L[cont] = (sig_l - err_sig_l + (2*err_sig_l/(dim1-1))*cont);
+		++cont;
+	}
+	cont=0;
+	while(cont<dim2){
+		SIGMA_G[cont] = (sig_g - err_sig_g + (2*err_sig_g/(dim2-1))*cont);
+		AREA_L[cont] = (area - err_area + (2*err_area/(dim2-1))*cont);
+		++cont;
+	}
+	Double_t values[4];
+	for(int i_mpv=0; i_mpv<dim1; ++i_mpv){
+		values[1]=MPV_L[i_mpv];
+		for(int i_sl=0; i_sl<dim1; ++i_sl){
+			values[0]=SIGMA_L[i_sl];
+			for(int i_sg=0; i_sg<dim2; ++i_sg){
+				values[3]=SIGMA_G[i_sg];
+				for(int i_area = 0; i_area<dim2; ++ i_area){
+					values[2]=AREA_L[i_area];
+					TF1 * mylangau = new TF1("mylangau",langaufun,inf,sup,4);
+					mylangau->SetParameters(values);
+					TF1 * mylangaumean = new TF1("mylangaumean",langaufunmean,inf,sup,4);
+					mylangaumean->SetParameters(values);
+					double myfitintegral = mylangau->Integral(inf,sup,1.e-3);
+					double myfitmean = mylangaumean->Integral(inf,sup,1.e-3);
+					double tmp = myfitmean/myfitintegral;
+					double unc = tmp - mean;
+					resid.push_back(unc);
+					mylangaumean->Delete();
+					mylangau->Delete();
+				}
+			}
+		}
+		std::cout<<float(i_mpv)/float(dim1)<< " " <<resid.back()<<std::endl;
+	}
+	double result = *std::max_element(resid.begin(),resid.end());
+	std::cout<<"err "<<result<<std::endl;
+	return result;
+}
+
+
