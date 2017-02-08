@@ -33,6 +33,10 @@ int ChanToVA(const int nStrip) {
   return nStrip/VA_CHAN;
 }
 
+int ChanToVAChan(const int Chan) {
+  return Chan%VA_CHAN;
+}
+
 int ChanToSide(const int nStrip) { // 0 p - 1 n
   int nADC = ChanToLadderADC(nStrip);
   return (nADC/2)%2;

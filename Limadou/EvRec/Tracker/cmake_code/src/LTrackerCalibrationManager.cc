@@ -310,8 +310,9 @@ void LTrackerCalibrationManager::GaussianityIndex(const int StartEntry, const in
   for(int iChan=0; iChan<NCHAN; ++iChan) {
     double outliers_expected=GAUSSIANITYEVRACTHRESHOLD*ngcounter[iChan];
     double delta=ngindex[iChan]-outliers_expected;
-    double significance=sqrt(outliers_expected+ngindex[iChan]-2*GAUSSIANITYEVRACTHRESHOLD*ngindex[iChan]);
-    ngindex[iChan]=(delta/significance);
+    double denominator=sqrt(outliers_expected+ngindex[iChan]-2*GAUSSIANITYEVRACTHRESHOLD*ngindex[iChan]);
+    //double denominator=ngindex[iChan]+outliers_expected;
+    ngindex[iChan]=(delta/denominator);
   }
   
   if(verboseFLAG) std::cout << "GaussianityIndex computed" << std::endl;

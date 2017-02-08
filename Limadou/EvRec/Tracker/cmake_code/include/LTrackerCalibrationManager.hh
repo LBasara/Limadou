@@ -11,7 +11,7 @@ const int NSIGMA1BIN=100;
 const double HALFSIGMA1WIDTH=1.5; // ADCs
 
 const double GAUSSIANITYSIGMATHRESHOLD=3.0;
-const double GAUSSIANITYEVRACTHRESHOLD=0.003;
+const double GAUSSIANITYEVRACTHRESHOLD=0.0027;
 
 
 class LTrackerCalibrationManager {

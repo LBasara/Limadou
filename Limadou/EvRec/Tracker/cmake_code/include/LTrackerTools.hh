@@ -9,6 +9,7 @@ int ChanToADC(const int nStrip);
 int ChanToLadderADC(const int nStrip);
 int ChanToADCVA(const int nStrip);
 int ChanToVA(const int nStrip);
+int ChanToVAChan(const int Chan);
 int ChanToSide(const int nStrip);  // 0 p - 1 n
 int ChanToPlane(const int nStrip); // 0 external - 1 internal
 int ChanToLadderPlane (const int nChan); // return 0,1,....11

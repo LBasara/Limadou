@@ -161,34 +161,8 @@ TCanvas *drawing6_1D(TH1D *ladder[N_LADDER]){
   ladder[5]->Draw("");
   return display;
 }
-TCanvas *drawing6_1D_same(TH1D *ladder[N_LADDER],TH1D *ladder2[N_LADDER]){
-  TCanvas *display=new TCanvas();
- display->Divide(3,2);
- for(int i=0;i<N_LADDER;++i){
-    ladder[i]->SetStats(0);
-    ladder2[i]->SetStats(0);
-    ladder2[i]->SetLineColor(2);
- }
-  display->cd(1);
-  ladder[0]->Draw("");
-  ladder2[0]->Draw("same");
-  display->cd(4);
-  ladder[1]->Draw("");
-  ladder2[1]->Draw("same");
-  display->cd(2);
-  ladder[2]->Draw("");
-  ladder2[2]->Draw("same");
-  display->cd(5);
-  ladder[3]->Draw("");
-  ladder2[3]->Draw("same");
-  display->cd(3);
-  ladder[4]->Draw("");
-  ladder2[4]->Draw("same");
-  display->cd(6);
-  ladder[5]->Draw("");
-  ladder2[5]->Draw("same");
-  return display;
-}
+
+
 TCanvas *drawing6_2D(TH2D *ladder[N_LADDER]){
   TCanvas *display=new TCanvas();
  display->Divide(3,2);
@@ -224,7 +198,78 @@ TCanvas *drawing6_2D(TH2D *ladder[N_LADDER]){
   return display;
 }
 
-void PrintPDF(std::vector <std::vector <event>> storage, int MAXEVENTS, int eta_dist_p[N_LADDER][ETASTEP], int eta_dist_n[N_LADDER][ETASTEP], TFile *outputroot,std::string outputname){
+TCanvas *drawing6_1D_same(TH1D *ladder[N_LADDER],TH1D *ladder2[N_LADDER],TH1D *ladder3[N_LADDER]){
+  TCanvas *display=new TCanvas();
+ display->Divide(3,2);
+ for(int i=0;i<N_LADDER;++i){
+    ladder[i]->SetStats(0);
+    ladder2[i]->SetStats(0);
+    ladder2[i]->SetLineColor(2);
+    ladder3[i]->SetStats(0);
+    ladder3[i]->SetLineColor(3);
+ }
+ display->cd(1);
+ ladder[0]->Draw("");
+ ladder2[0]->Draw("same");
+ ladder3[0]->Draw("same");
+ display->cd(4);
+ ladder[1]->Draw("");
+ ladder2[1]->Draw("same");
+ ladder3[1]->Draw("same");
+ display->cd(2);
+ ladder[2]->Draw("");
+ ladder2[2]->Draw("same");
+ ladder3[2]->Draw("same");
+ display->cd(5);
+ ladder[3]->Draw("");
+ ladder2[3]->Draw("same");
+ ladder3[3]->Draw("same");
+ display->cd(3);
+ ladder[4]->Draw("");
+ ladder2[4]->Draw("same");
+ ladder3[4]->Draw("same");
+ display->cd(6);
+ ladder[5]->Draw("");
+ ladder2[5]->Draw("same");
+ ladder3[5]->Draw("same");
+ return display;
+}
+TCanvas *drawing6_1D_same(TH1D *ladder[N_LADDER],TH1D *ladder2[N_LADDER]){
+  TCanvas *display=new TCanvas();
+  display->Divide(3,2);
+  for(int i=0;i<N_LADDER;++i){
+    ladder[i]->SetStats(0);
+    ladder2[i]->SetStats(0);
+    ladder2[i]->SetLineColor(2);
+  }
+  display->cd(1);
+  ladder[0]->Draw("");
+  ladder2[0]->Draw("same");
+  
+  display->cd(4);
+  ladder[1]->Draw("");
+  ladder2[1]->Draw("same");
+  
+  display->cd(2);
+  ladder[2]->Draw("");
+  ladder2[2]->Draw("same");
+  
+  display->cd(5);
+  ladder[3]->Draw("");
+  ladder2[3]->Draw("same");
+  
+  display->cd(3);
+  ladder[4]->Draw("");
+  ladder2[4]->Draw("same");
+  
+  display->cd(6);
+  ladder[5]->Draw("");
+  ladder2[5]->Draw("same");
+  
+  return display;
+}
+
+void ClusterManager(std::vector <std::vector <event>> storage, int MAXEVENTS, int eta_dist_p[N_LADDER][ETASTEP], int eta_dist_n[N_LADDER][ETASTEP], TFile *outputroot,std::string outputname){
   
   std::stringstream Stream_out;
   Stream_out<<outputname<<"_events.txt";
@@ -765,24 +810,72 @@ clusterseed_p1_n_histo[ld]=new TH2D(Form("clusterseed_p1_n_%d",ld),Form("cluster
   drawing2D( check_timing_right_histo,"check_timing_righ;ADC_seed;(ADC_right-ADC_seed)/ADC_seed")->Print(Stream4.str().c_str());
   drawing2D( check_timing_left_histo,"check_timing_left;ADC_seed;(ADC_left-ADC_seed)/ADC_seed")->Print(Stream4.str().c_str());
   out->Print(Stream4_close.str().c_str());
-
-
+  std::stringstream Stream5;
+  Stream5<<outputname<<"_efficiency.txt";
+  std:: ofstream eff_files(Stream5.str().c_str(),std::ofstream::app);
+  
   for(int ld=0;ld<N_LADDER;++ld){
     std::cout<<"Ladder "<<ld <<" side p: "<<pcounts[ld]<<" Overall efficiency: "<<pcounts[ld]/(double)MAXEVENTS<< " Error: "<<sqrt(pcounts[ld]*(1-pcounts[ld]/(double)MAXEVENTS)) <<std::endl;
+    eff_files << ld <<"\t p \t" << pcounts[ld]/(double)MAXEVENTS;
     std::cout<<"Ladder "<<ld <<" side n: "<<ncounts[ld]<<" Overall efficiency: "<<ncounts[ld]/(double)MAXEVENTS<< " Error: "<<sqrt(pcounts[ld]*(1-pcounts[ld]/(double)MAXEVENTS)) <<std::endl;
+    eff_files << ld <<"\t n \t" << ncounts[ld]/(double)MAXEVENTS;
 
     }
+}
+
+void MaskingStudy(double *sigma1,double *sigma2, double *sigma3,double *NGindex1,double *NGindex2, double *NGindex3,std::string outputname){
+
+  TH1D *sigmadist1_hist[N_SIDES][N_LADDER];
+  TH1D *NGIdist1_hist[N_SIDES][N_LADDER];
+  TH1D *sigmadist2_hist[N_SIDES][N_LADDER];
+  TH1D *NGIdist2_hist[N_SIDES][N_LADDER];
+  TH1D *sigmadist3_hist[N_SIDES][N_LADDER];
+  TH1D *NGIdist3_hist[N_SIDES][N_LADDER];
+  for(int ladder=0;ladder<N_LADDER;++ladder){
+    for(int side=0;side<N_SIDES;++side){
+      char label;
+      if(side) label='n';
+      else label='p';
+      sigmadist1_hist[side][ladder]=new TH1D(Form(" sigmadist1_%c_%d",label,ladder),Form(" sigmadist_%c_%d;sigma;counts",label,ladder),100,0,50);
+      NGIdist1_hist[side][ladder]=new TH1D(Form("NGIdist1_%c_%d",label,ladder),Form("NGIdist_%c_%d;NGI;counts",label,ladder),50,-10,10);
+      sigmadist2_hist[side][ladder]=new TH1D(Form(" sigmadist2_%c_%d",label,ladder),Form(" sigmadist_%c_%d;sigma;counts",label,ladder),100,0,50);
+      NGIdist2_hist[side][ladder]=new TH1D(Form("NGIdist2_%c_%d",label,ladder),Form("NGIdist_%c_%d;NGI;counts",label,ladder),50,-10,10);
+    sigmadist3_hist[side][ladder]=new TH1D(Form(" sigmadist3_%c_%d",label,ladder),Form(" sigmadist_%c_%d;sigma;counts",label,ladder),100,0,50);
+      NGIdist3_hist[side][ladder]=new TH1D(Form("NGIdist3_%c_%d",label,ladder),Form("NGIdist_%c_%d;NGI;counts",label,ladder),50,-10,10);
+    }
+  }
+  for(int ichan=0;ichan<NCHAN;++ichan){
+    int ladder=ChanToLadder(ichan);
+    int side=ChanToSide(ichan);
+    sigmadist1_hist[side][ladder]->Fill(sigma1[ichan]);
+    NGIdist1_hist[side][ladder]->Fill(NGindex1[ichan]);
+    sigmadist2_hist[side][ladder]->Fill(sigma2[ichan]);
+    NGIdist2_hist[side][ladder]->Fill(NGindex2[ichan]);
+    sigmadist3_hist[side][ladder]->Fill(sigma3[ichan]);
+    NGIdist3_hist[side][ladder]->Fill(NGindex3[ichan]);
+  }
+
+
+  TCanvas *can=new TCanvas();
+  std::stringstream Stream4;
+  std::stringstream Stream4_open;
+  std::stringstream Stream4_close;
+  Stream4<<outputname <<"_masking_study.pdf";
+  Stream4_open<<outputname<<"_masking_study.pdf[";
+  Stream4_close<<outputname<<"_masking_study.pdf]";
+  can->Print(Stream4_open.str().c_str());
+  for(int side=0;side<N_SIDES;++side){
+    drawing6_1D_same(sigmadist1_hist[side],sigmadist2_hist[side],sigmadist3_hist[side])->Print(Stream4.str().c_str());
+    drawing6_1D_same(NGIdist1_hist[side],NGIdist2_hist[side],NGIdist3_hist[side])->Print(Stream4.str().c_str());
+  }
+   can->Print(Stream4_close.str().c_str());
+
 }
 
 void analysis(std::string namefile,std::string calib_file,std::string outputname){
   gROOT->Reset();
   gDirectory->GetList()->Delete();
-  /*
-   std::ifstream infile (calib_file.c_str(),std::ifstream::in);
-  std::string buffer;   //avoiding header
-  for(int j=0;j<4;++j)
-    std::getline(infile,buffer);
-  */
+
   LTrackerCalibration *cal=LTrackerCalibration::Read(calib_file.c_str());
   
   
@@ -795,24 +888,8 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
   
   LTrackerMask hotmask=cal->GetMaskOnSigma(0,-999,SIGMAHOT);
   bool *evmask=hotmask.GetBool();
-  /*
-  double mean2_calib[NCHAN];
-  double sigma3_calib[NCHAN];
-  double gausindex[NCHAN];
-  bool CNmask[NCHAN];
-   bool IsAlive[NCHAN];
-
-  
-  for(int ichan=0;ichan<NCHAN;++ichan){
-    mean2_calib[ichan]=0.;
-    sigma3_calib[ichan]=0.;
-    gausindex[ichan]=0.;
-    CNmask[ichan]=0;
-  }
-     */
   
      for(int ichan=0;ichan<NCHAN;++ichan){
-    // infile >> mean2_calib[ichan] >> sigma3_calib[ichan] >>gausindex[ichan]>> CNmask[ichan];
      if(isgaus[ichan]<=GAUSINDEX_CUT&& sigma3_calib[ichan]<SIGMAHOT) IsAlive[ichan]=1;
      else IsAlive[ichan]=0;
      }
@@ -834,7 +911,26 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
   TFile *output2=new TFile(Stream_root.str().c_str(),"RECREATE");
   //definig only histos that are not cluster-related
   TH2D *common_noise_total=new TH2D("common_noise_total","",N_VA,0,N_VA,500,-100,100);
- 
+  TH1D *sigmadist1_hist[N_SIDES][N_LADDER];
+  TH1D *NGIdist1_hist[N_SIDES][N_LADDER];
+
+  for(int ladder=0;ladder<N_LADDER;++ladder){
+    for(int side=0;side<N_SIDES;++side){
+      char label;
+      if(side) label='n';
+      else label='p';
+      sigmadist1_hist[side][ladder]=new TH1D(Form(" sigmadist1_%c_%d",label,ladder),Form(" sigmadist_%c_%d;sigma;counts",label,ladder),100,0,50);
+      NGIdist1_hist[side][ladder]=new TH1D(Form("NGIdist1_%c_%d",label,ladder),Form("NGIdist_%c_%d;NGI;counts",label,ladder),50,-10,10);
+    }
+  }
+
+  for(int ichan=0;ichan<NCHAN;++ichan){
+    int ladder=ChanToLadder(ichan);
+    int side=ChanToSide(ichan);
+    sigmadist1_hist[side][ladder]->Fill(sigma3_calib[ichan]);
+    NGIdist1_hist[side][ladder]->Fill(isgaus[ichan]);
+  }
+  
   //matrices definition
   short *data[NCHAN];
   for(int ichan=0;ichan<NCHAN;++ichan)
@@ -868,7 +964,9 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
   Stream2_open<<outputname<<"_results.pdf[";
   Stream2_close<<outputname<<"_results.pdf]";
 
-
+  const int NTHRESHOLDTEST=10;
+  double threshold[NTHRESHOLDTEST]={2.,2.5,3.,3.5,4.,4.5,5.,5.5,6.,6.5};
+  // for(int thr=0;thr<NTHRESHOLDTEST;++thr){
   
   std::vector <std::vector <event> > storage; //good events storage
   for(int ipk=0;ipk<N_PKG;++ipk){//loop on group of events
@@ -924,11 +1022,11 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
     }
   }//ipkg ends here!!
 
-  PrintPDF(storage,MAXEVENTS,eta_dist_p,eta_dist_n,output2,outputname);
-  
+  ClusterManager(storage,MAXEVENTS,eta_dist_p,eta_dist_n,output2,outputname);
+  //}
   //common_noise_total->Write();
   
-  //TCanvas *out=new TCanvas();
+  TCanvas *out=new TCanvas();
   /*
  std::stringstream Stream2;
   std::stringstream Stream2_open;
@@ -949,7 +1047,18 @@ void analysis(std::string namefile,std::string calib_file,std::string outputname
   display_ladders2D(significativit_histo,"SN",";chan;SN")->Print(Stream2.str().c_str());
   //display_ladders1D(good_chan_hist,"good_channel",";chan;")->Print(Stream2.str().c_str());
   */
-  
+  std::stringstream Stream4;
+  std::stringstream Stream4_open;
+  std::stringstream Stream4_close;
+  Stream4<<outputname <<"_masking_study.pdf";
+  Stream4_open<<outputname<<"_masking_study.pdf[";
+  Stream4_close<<outputname<<"_masking_study.pdf]";
+  out->Print(Stream4_open.str().c_str());
+  for(int side=0;side<N_SIDES;++side){
+    drawing6_1D(sigmadist1_hist[side])->Print(Stream4.str().c_str());
+    drawing6_1D(NGIdist1_hist[side])->Print(Stream4.str().c_str());
+  }
+  out->Print(Stream4_close.str().c_str());
 }
 
 void analysis_ondata(std::string namefile,std::string outputname){
@@ -963,19 +1072,20 @@ void analysis_ondata(std::string namefile,std::string outputname){
   input.SetTheEventPointer(ev);
   const int MAXEVENTS = input.GetEntries();
   const int N_PKG=MAXEVENTS/NCALIBEVENTS;
+  //const int trial=5000;
+  //const int N_PKG=MAXEVENTS/trial;
   //Histogram defining
   std::stringstream Stream_root;
   Stream_root<<outputname<<".root";
   
   TFile *output2=new TFile(Stream_root.str().c_str(),"RECREATE");
-  
-  
+
+ 
   /*
   TH1D *good_chan_hist=new TH1D("good_chan_hist","",NCHAN,0,NCHAN);
   TH1D *meanmean_hist[N_LADDER];
   for(int ld=0;ld<N_LADDER;++ld)
     meanmean_hist[ld]=new TH1D(Form("Mean_value_ladder_%d",ld),Form("Mean_value_ladder_%d",ld),N_PKG,0,N_PKG);
-  
   
   TH2D *mean1_histo=new TH2D("mean1_2d","",NCHAN,0.,NCHAN,3000,0,3000);
   TH2D *sigma1_histo=new TH2D("sigma1_2d","",NCHAN,0,NCHAN,500,0,40.);
@@ -986,6 +1096,20 @@ void analysis_ondata(std::string namefile,std::string outputname){
  
   TH2D *common_noise_total=new TH2D("common_noise_total","",N_VA,0,N_VA,500,-100,100);
 
+  TH1D *sigmadist1_hist[N_SIDES][N_LADDER];
+  TH1D *NGIdist1_hist[N_SIDES][N_LADDER];
+
+  for(int ladder=0;ladder<N_LADDER;++ladder){
+    for(int side=0;side<N_SIDES;++side){
+      char label;
+      if(side) label='n';
+      else label='p';
+      sigmadist1_hist[side][ladder]=new TH1D(Form(" sigmadist1_%c_%d",label,ladder),Form(" sigmadist_%c_%d;sigma;counts",label,ladder),100,0,50);
+      NGIdist1_hist[side][ladder]=new TH1D(Form("NGIdist1_%c_%d",label,ladder),Form("NGIdist_%c_%d;NGI;counts",label,ladder),50,-10,10);
+    }
+  }
+  
+      
   //matrices definition
    short *data[NCHAN];
   for(int ichan=0;ichan<NCHAN;++ichan)
@@ -1019,10 +1143,11 @@ void analysis_ondata(std::string namefile,std::string outputname){
     std::vector <std::vector <event> > storage;  //good events storage
 
     LTrackerCalibrationManager::GetInstance().LoadRun(namefile.c_str());
-     LTrackerCalibration *cal=LTrackerCalibrationManager::GetInstance().Calibrate(NCALIBEVENTS,0);
-   
+    LTrackerCalibration *cal=LTrackerCalibrationManager::GetInstance().Calibrate(NCALIBEVENTS,0);
+    //LTrackerCalibration *cal=LTrackerCalibrationManager::GetInstance().Calibrate(trial,0);
+     //MaskingStudy( cal->GetSigma(0),cal->GetSigma(50),cal->GetSigma(100),cal->GetNGIndex(0),cal->GetNGIndex(50),cal->GetNGIndex(100),outputname);
     //processing events
-
+    
   for(int ipk=0;ipk<N_PKG;++ipk){
     //std::cout<<"Processing events. Step "<<ipk<<std::endl;
     for(int iev=0; iev<NCALIBEVENTS; ++iev){
@@ -1043,6 +1168,13 @@ void analysis_ondata(std::string namefile,std::string outputname){
      double *isgaus=cal->GetNGIndex(ipk);
      bool *CNmask=cal->GetCNMask(ipk);
      bool IsAlive[NCHAN];
+
+     for(int ichan=0;ichan<NCHAN;++ichan){
+       int ladder=ChanToLadder(ichan);
+       int side=ChanToSide(ichan);
+       sigmadist1_hist[side][ladder]->Fill(sigma3_calib[ichan]);
+       NGIdist1_hist[side][ladder]->Fill(isgaus[ichan]);
+     }
 
     for(int evt=0;evt<NCALIBEVENTS;evt++){
       ComputeCN(data2[evt],mean2_calib,CNmask,&CN_matrix_clean[evt][0]);
@@ -1086,16 +1218,18 @@ void analysis_ondata(std::string namefile,std::string outputname){
       clev.push_back(myevent);
     }
     storage.push_back(clev);
-    //}
-    
+    /*
     for(int iev=0;iev<NCALIBEVENTS;iev++){
       for(int iva=0;iva<N_VA;iva++){
 	common_noise_total->Fill(iva,CN_matrix_clean[iev][iva]);
       }
     }
+    */
   }//ipkg ends here
-   PrintPDF(storage,MAXEVENTS,eta_dist_p,eta_dist_n,output2,outputname);
-  output2->cd();
+
+   ClusterManager(storage,MAXEVENTS,eta_dist_p,eta_dist_n,output2,outputname);
+    
+   //output2->cd();
   //mean1_histo->Write();
   //sigma1_histo->Write();
   //mean2_histo->Write();
@@ -1118,7 +1252,7 @@ void analysis_ondata(std::string namefile,std::string outputname){
   Stream2_close<<outputname<<"_general_results.pdf]";
   */
 
-  //TCanvas *out=new TCanvas();
+  TCanvas *out=new TCanvas();
   /*
   out->Print(Stream2_open.str().c_str());
   display_ladders2D(common_noise_total,"common_noise",";VA;ADC")->Print(Stream2.str().c_str());
@@ -1135,4 +1269,19 @@ void analysis_ondata(std::string namefile,std::string outputname){
   out->Print(Stream2_close.str().c_str());
   
   */
+
+  std::stringstream Stream4;
+  std::stringstream Stream4_open;
+  std::stringstream Stream4_close;
+  Stream4<<outputname <<"_masking_study.pdf";
+  Stream4_open<<outputname<<"_masking_study.pdf[";
+  Stream4_close<<outputname<<"_masking_study.pdf]";
+  out->Print(Stream4_open.str().c_str());
+  for(int side=0;side<N_SIDES;++side){
+    drawing6_1D(sigmadist1_hist[side])->Print(Stream4.str().c_str());
+    drawing6_1D(NGIdist1_hist[side])->Print(Stream4.str().c_str());
   }
+  out->Print(Stream4_close.str().c_str());
+
+  }
+
