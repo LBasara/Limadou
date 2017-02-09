@@ -43,7 +43,7 @@ float Conv(double x, double mass){
 
 Double_t bethefuncion(Double_t *x, Double_t *par){
   //x[0] = Conv(x[0],par[0]); // USE if kin. en. needed!!!!!!!!!!
-  double K = 0.307075; //MeV*g^-1*cm^2 for A= 1 g/mol 
+  double K = 0.307075; //MeV*g^-1*cm^2 for A= 1 g/mol
   double Z = 14; // atomic number of Silicon
   //double Z = 29; // atomic number of Copper
   double z2 = par[1]*par[1]; // charge squared of the incident particle
@@ -99,7 +99,7 @@ void bethe(){
   bethefunc_e->SetMaximum(9.);
   bethefunc_e->SetMinimum(1.0);
   bethefunc_e->Draw("same");
-  
+
   TF1 * bethefunc_p = new TF1("bethefunc_p",bethefuncion,minXaxis, maxXaxis, 2);
   bethefunc_p->SetParameter(0,mass_proton);
   bethefunc_p->SetParameter(1,charge_proton);
@@ -112,17 +112,17 @@ void bethe(){
   bethefunc_mu->SetLineColor(4);
   bethefunc_mu->Draw("same");
   */
-  
+
   TF1 * bethefunc_helium = new TF1("bethefunc_helium",bethefuncion,minXaxis, maxXaxis, 2);
   bethefunc_helium->SetParameter(0,mass_helium);
   bethefunc_helium->SetParameter(1,charge_helium);
   bethefunc_helium->SetLineColor(4);
   bethefunc_helium->Draw("same");
-  
+
 
 
   TLegend * leg = new TLegend(0.7,0.70,0.9,0.9);
-  leg->SetHeader("Silicon","l");
+  leg->SetHeader("Silicon");
   leg->AddEntry("bethefunc_e","e^{-}","l");
     leg->AddEntry("bethefunc_p","p","l");
     leg->AddEntry("bethefunc_helium","He","l");
@@ -134,7 +134,7 @@ void bethe(){
     leg->Draw("same");
     c1->Print("Bethes.pdf");
 
-  
+
 }
 
 double delta(Double_t * x, double x_0, double x_1, double Cbar, double a, double k, double delta_0 ){//x_0 par_0,x_1 par_1,C par_2,a par_3,k par_4, delta_0 par_5
@@ -148,7 +148,7 @@ double delta(Double_t * x, double x_0, double x_1, double Cbar, double a, double
 
 Double_t Bethe_p(Double_t *x, Double_t *par){
   double MASS = 938.27;// MeV
-  double K = 0.307075; //MeV*g^-1*cm^2 for A= 1 g/mol 
+  double K = 0.307075; //MeV*g^-1*cm^2 for A= 1 g/mol
   double Z = 14; // atomic number of Silicon
   //double Z = 29; // atomic number of Copper
   double z2 = 1; // charge squared of the incident particle
@@ -217,7 +217,7 @@ void langau_fit(){
     langau_param_william <<"protons_"<<energies[ene]<< "MeV" <<std::endl;
     for (int o=0; o<6; o++){
       //reads parameter from "langau_param.txt"...pay attention deleting the 70 MeV lines!!
-      langau_param >> MPV_read[o][0][ene] >> sigma_read[o][0][ene] >> MPV_read[o][1][ene] >> sigma_read[o][1][ene]; 
+      langau_param >> MPV_read[o][0][ene] >> sigma_read[o][0][ene] >> MPV_read[o][1][ene] >> sigma_read[o][1][ene];
       // writes parameters in a more understanble txt ("langau_param_william.txt")
       langau_param_william << "ladder_"<< o <<" MPV_p =" << MPV_read[o][0][ene] << " sigma_p =" << sigma_read[o][0][ene] << " MPV_n =" << MPV_read[o][1][ene] <<  " sigma_n =" <<sigma_read[o][1][ene]<<std::endl;
     }
@@ -241,12 +241,12 @@ void langau_fit(){
       }
       else{
         title = "Ladder "+std::to_string(i)+" side n";
-      }   
+      }
       global_langau[j][i] -> SetTitle(title.c_str());
     }
   }
 
-  
+
   TCanvas * plot= new TCanvas();
   plot->Print("langau_fit.pdf[");
   for(int i=0; i<6; i++){
@@ -254,5 +254,5 @@ void langau_fit(){
       Plotter(global_langau[j][i])->Print("langau_fit.pdf");
     }
   }
-  
+
 }
