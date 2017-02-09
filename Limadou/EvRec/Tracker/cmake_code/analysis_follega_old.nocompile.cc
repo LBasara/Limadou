@@ -1,39 +1,4 @@
-#include "LEvRec0.hh"
-#include "LTrackerTools.hh"
-#include "LTrackerCluster.hh"
-#include "analysis_follega.hh"
-#include "LPlotTools.hh"
-#include "LTrackerFittingTools.hh"
 
-#include <iostream>
-#include "TFile.h"
-#include "TLatex.h"
-#include "TH1.h"
-#include "TMath.h"
-#include "TAxis.h"
-#include "TF1.h"
-#include "TH2.h"
-#include "TPad.h"
-#include "string.h"
-#include "TTree.h"
-#include "TROOT.h"
-#include "TLegend.h"
-#include "TBranch.h"
-#include "TLeaf.h"
-#include "TProfile.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TPad.h"
-#include "TLine.h"
-#include <string>
-#include "TPaveLabel.h"
-#include <time.h>
-#include <vector>
-#include <stdlib.h>
-#include <algorithm>
-#include <fstream>
-#include <string>
-#include "string.h"
 
 /*
 const int n_chann = 4608; //number of channels 

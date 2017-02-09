@@ -1,6 +1,5 @@
 #include <iostream>
 #include "silicon_calibration.hh"
-#include <stdlib.h>
 
 int main(int argc,char *argv[]){
   if(argc==4) analysis(argv[1],argv[2],argv[3]);

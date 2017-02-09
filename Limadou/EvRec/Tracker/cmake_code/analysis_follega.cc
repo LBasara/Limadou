@@ -1,20 +1,9 @@
-#include "LEvRec0.hh"
-#include "analysis_const.hh"
-#include "detector_const.hh"
 #include "LTrackerTools.hh"
-#include "LTrackerCluster.hh"
 #include "analysis_follega.hh"
 #include "LPlotTools.hh"
 #include "LTrackerFittingTools.hh"
 #include "LTrackerCalibrationManager.hh"
-#include "LTrackerMask.hh"
-#include "LTrackerBethe.hh"
-#include <iostream>
 
-#include "TH1.h"
-#include "TH2.h"
-#include "TProfile.h"
-#include "TCanvas.h"
 #include "TStyle.h"
 
 struct event {

@@ -1,6 +1,5 @@
 #include <iostream>
 #include "LTrackerCalibrationManager.hh"
-#include "LTrackerMask.hh"
 
 int main(int argc, char *argv[]) {
   if(argc!=3) {
