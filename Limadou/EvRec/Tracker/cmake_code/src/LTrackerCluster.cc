@@ -86,6 +86,7 @@ LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const
     }
   }
   ComputeEta();
+
   /*
     Ester tools for eta studies
   if(ETAMAX==2)
@@ -93,6 +94,7 @@ LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const
   else
     ComputeEta();
   */
+
 }
 
 double LTrackerCluster::GetSides(const double SideThreshold){
