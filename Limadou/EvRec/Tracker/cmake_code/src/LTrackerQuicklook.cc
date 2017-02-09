@@ -255,28 +255,28 @@ void QuickLook(std::string namefile){
   OutName_close<<"QuickLook_"<<namefile<<".pdf]";
   */
   TCanvas *output=new TCanvas();
-  output->Print("QuickLook.pdf[");
+  output->Print("QuickLook.pdf[","pdf");
  
-    drawing6_chan_2D(pedestal[0])->Print("QuickLook.pdf");
-    drawing6_chan_2D(pedestal[1])->Print("QuickLook.pdf");
-    drawing6_chan_2D(sigma[0])->Print("QuickLook.pdf");
-    drawing6_chan_2D(sigma[1])->Print("QuickLook.pdf");
-    drawing6_va_2D(CN[0])->Print("QuickLook.pdf");
-    drawing6_va_2D(CN[1])->Print("QuickLook.pdf");
-    drawing6_chan_2D(NGindex[0])->Print("QuickLook.pdf");
+  drawing6_chan_2D(pedestal[0])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(pedestal[1])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(sigma[0])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(sigma[1])->Print("QuickLook.pdf","pdf");
+    drawing6_va_2D(CN[0])->Print("QuickLook.pdf","pdf");
+    drawing6_va_2D(CN[1])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(NGindex[0])->Print("QuickLook.pdf","pdf");
     drawing6_chan_2D(NGindex[1])->Print("QuickLook.pdf");
-    drawing6_chan_2D(counts_clean[0])->Print("QuickLook.pdf");
-    drawing6_chan_2D(counts_clean[1])->Print("QuickLook.pdf");
-    drawing6_chan_2D(signal_noise[0])->Print("QuickLook.pdf");
-    drawing6_chan_2D(signal_noise[1])->Print("QuickLook.pdf");
-    drawing12_2D(temp_map[0],temp_map[1])->Print("QuickLook.pdf");
-    drawing12_2D(gaus_map[0],gaus_map[1])->Print("QuickLook.pdf");
+    drawing6_chan_2D(counts_clean[0])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(counts_clean[1])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(signal_noise[0])->Print("QuickLook.pdf","pdf");
+    drawing6_chan_2D(signal_noise[1])->Print("QuickLook.pdf","pdf");
+    drawing12_2D(temp_map[0],temp_map[1])->Print("QuickLook.pdf","pdf");
+    drawing12_2D(gaus_map[0],gaus_map[1])->Print("QuickLook.pdf","pdf");
     /*
     drawing6_2D(gaus_map[0])->Print("QuickLook.pdf");
     drawing6_2D(gaus_map[1])->Print("QuickLook.pdf");
     drawing6_2D(temp_map[0])->Print("QuickLook.pdf");
     drawing6_2D(temp_map[1])->Print("QuickLook.pdf");
     */
-  output->Print("QuickLook.pdf]");
+  output->Print("QuickLook.pdf]","pdf");
 
 }

@@ -85,8 +85,14 @@ LTrackerCluster::LTrackerCluster(const int inpSeed, const double *inpCont, const
       sn[i]=count[i]/sigma[i];
     }
   }
-  //ComputeEta();
-  ComputeEta3();
+  ComputeEta();
+  /*
+    Ester tools for eta studies
+  if(ETAMAX==2)
+    ComputeEta3();
+  else
+    ComputeEta();
+  */
 }
 
 double LTrackerCluster::GetSides(const double SideThreshold){
