@@ -16,7 +16,7 @@ struct event {
     std::vector<LTrackerCluster> cls;
 };
 
-void f_eta (int size, double *x_axis, int* dn_deta, double *result)
+void f_eta (int size, int* dn_deta, double *result)
 {
     double partial_sum = 0.;
     double step_int = 0.;
@@ -335,18 +335,15 @@ void PrintPDF (std::vector <std::vector <event>> storage, int MAXEVENTS, int eta
         cluster_shape_n_histo[ld] = new TH2D (Form ("cluster_shape_n_%d", ld), Form ("cluster_shape_n_%d;position;SN", ld), 5, 0, 5, 100, -10, 50);
     }
 //eta vectors definition
-    double step_eta = (double) ETARANGE / (double) ETASTEP;
-    double basement[ETASTEP];
-    for (int ch = 0; ch < ETASTEP; ++ch) {
-        basement[ch] = ch * step_eta;
-    }
+
+
     //f_eta calculation
     double f_eta_p[N_LADDER][ETASTEP];
     double f_eta_n[N_LADDER][ETASTEP];
     for (int ladder = 0; ladder < N_LADDER; ++ladder) {
         //diff_p=1.e10;
-        f_eta (ETASTEP, basement, eta_dist_p[ladder], f_eta_p[ladder]);
-        f_eta (ETASTEP, basement, eta_dist_n[ladder], f_eta_n[ladder]);
+        f_eta (ETASTEP, eta_dist_p[ladder], f_eta_p[ladder]);
+        f_eta (ETASTEP, eta_dist_n[ladder], f_eta_n[ladder]);
         for (int ch = 0; ch < ETASTEP; ++ch) {
             f_eta_p_hist[ladder]->SetBinContent (ch + 1, f_eta_p[ladder][ch]);
             f_eta_n_hist[ladder]->SetBinContent (ch + 1, f_eta_n[ladder][ch]);
