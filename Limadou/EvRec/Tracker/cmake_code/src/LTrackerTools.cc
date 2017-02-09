@@ -1,9 +1,6 @@
-#include "LTrackerTools.hh"
-#include "detector_const.hh"
 #include "LTrackerCluster.hh"
 #include "LTrackerMask.hh"
 #include <algorithm>
-#include <math.h>
 #include <iostream>
 
 int ChanToLadder(const int nStrip) {

@@ -1,5 +1,4 @@
 #include "LTrackerCalibration.hh"
-#include <fstream>
 #include <iostream>
 
 void LTrackerCalibration::Add(const LTrackerCalibrationSlot *lcal) {

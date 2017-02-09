@@ -1,31 +1,14 @@
-#include "detector_const.hh"
-#include "analysis_const.hh"
 
-#include "TTree.h"
-#include "TFile.h"
-#include "TH1D.h"
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TStyle.h"
-#include "TLine.h"
 #include "TROOT.h"
-#include "TRint.h"
 
 #include <iostream>
-#include <stdlib.h>
-#include <vector>
-#include <algorithm>
-#include <string>
 #include <sstream>
-#include <fstream>
-#include <cmath>
 
-#include "LEvRec0File.hh"
-#include "LEvRec0.hh"
-#include "LTrackerCluster.hh"
 #include "LTrackerTools.hh"
 #include "LTrackerCalibrationManager.hh"
-#include "LTrackerCalibration.hh"
 
 
 struct event {

@@ -1,5 +1,3 @@
-#include "detector_const.hh"
-#include "analysis_const.hh"
 
 #include "LEvRec0.hh"
 #include <iostream>

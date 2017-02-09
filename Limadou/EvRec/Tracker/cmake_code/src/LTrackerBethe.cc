@@ -1,19 +1,4 @@
-#include <iostream>
-#include "string.h"
-#include <string>
 #include <fstream>
-#include <iostream>
-#include <stdlib.h>
-#include "TMath.h"
-#include "TLegend.h"
-#include "TLatex.h"
-#include "TROOT.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TAxis.h"
-#include "TF1.h"
-#include "TH1F.h"
-#include "TGraphErrors.h"
 
 #include "LTrackerBethe.hh"
 

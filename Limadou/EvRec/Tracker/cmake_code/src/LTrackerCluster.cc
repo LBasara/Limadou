@@ -1,10 +1,7 @@
 #include "detector_const.hh"
-#include "analysis_const.hh"
 
 #include "LTrackerTools.hh"
-#include "LTrackerCluster.hh"
 #include <iostream>
-#include <cmath>
 
 double LTrackerCluster::ComputeEta() {
   int seedIndex=CLUSTERCHANNELS/2;
