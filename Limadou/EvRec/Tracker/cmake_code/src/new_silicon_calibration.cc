@@ -713,19 +713,19 @@ void analysis (std::string namefile, std::string calib_file, std::string outputn
         for (int iev = 0; iev < NCALIBEVENTS; ++iev) {
             std::vector<LTrackerCluster> *clusters = GetClusters (counts_clean[iev], sigma3_calib, evmask);
             event myevent;
-            for (uint iev = 0; iev < clusters->size(); ++iev) {
-                int ladder = ChanToLadder (clusters->at (iev).seed);
-                double eta = clusters->at (iev).GetEta();
+            for (uint icluster = 0; icluster < clusters->size(); ++icluster) {
+                int ladder = ChanToLadder (clusters->at (icluster).seed);
+                double eta = clusters->at (icluster).GetEta();
                 if (eta >= ETAMIN && eta <= ETAMAX) {
-                    if (ChanToSide (clusters->at (iev).seed) ) //n cases
+                    if (ChanToSide (clusters->at (icluster).seed) ) //n cases
                         ++eta_dist_n[ladder][ (int) (ETASTEP * (eta - ETAMIN) / ETARANGE)];
                     else
                         ++eta_dist_p[ladder][ (int) (ETASTEP * (eta - ETAMIN) / ETARANGE)];
                 }
-                if (ChanToLadder (clusters->at (iev).seed) == 2 && ChanToSide (clusters->at (iev).seed) == 1) { //clusters->at(iev).Dump();
-                    //n3_cluster_place->Fill(ChanToSideChan(clusters->at(iev).seed));
+                if (ChanToLadder (clusters->at (icluster).seed) == 2 && ChanToSide (clusters->at (icluster).seed) == 1) { //clusters->at(icluster).Dump();
+                    //n3_cluster_place->Fill(ChanToSideChan(clusters->at(icluster).seed));
                 }
-                myievent.cls.push_back (clusters->at (iev) );
+                myevent.cls.push_back (clusters->at (icluster) );
             }
             if (myevent.cls.size() > 0) clev.push_back (myevent);
         }
@@ -826,16 +826,16 @@ void analysis_ondata (std::string namefile, std::string outputname)
             std::vector<LTrackerCluster> *clusters = GetClusters (counts_clean[iev], sigma3_calib, evmask);
             //std::cout<<"Check. Event N "<<iev<<" Package "<<ipk<<std::endl;
             event myevent;
-            for (uint iev = 0; iev < clusters->size(); ++iev) {
-                int ladder = ChanToLadder (clusters->at (iev).seed);
-                double eta = clusters->at (iev).GetEta();
+            for (uint icluster = 0; icluster < clusters->size(); ++icluster) {
+                int ladder = ChanToLadder (clusters->at (icluster).seed);
+                double eta = clusters->at (icluster).GetEta();
                 if (eta >= ETAMIN && eta <= ETAMAX) {
-                    if (ChanToSide (clusters->at (iev).seed) ) //n cases
+                    if (ChanToSide (clusters->at (icluster).seed) ) //n cases
                         ++eta_dist_n[ladder][ (int) (ETASTEP * (eta) / ETARANGE)];
                     else
                         ++eta_dist_p[ladder][ (int) (ETASTEP * (eta) / ETARANGE)];
                 }
-                myievent.cls.push_back (clusters->at (iev) );
+                myevent.cls.push_back (clusters->at (icluster) );
             }
             clev.push_back (myevent);
         }
