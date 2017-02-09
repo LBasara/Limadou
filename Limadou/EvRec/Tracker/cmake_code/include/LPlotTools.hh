@@ -3,10 +3,6 @@
 
 #include "TCanvas.h"
 #include "TH2.h"
-#include "TH1.h"
-#include "TProfile.h"
-#include <string>
-#include "string.h"
 
 TCanvas * Plot_2d(TH2F * histo, string xaxis, string yaxis);
 TCanvas * Plot_1d(TH1F * histo, string xaxis, string yaxis);

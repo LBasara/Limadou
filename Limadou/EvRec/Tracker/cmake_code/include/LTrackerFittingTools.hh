@@ -1,13 +1,8 @@
 #ifndef __LTRACKERFITTINGTOLLS__
 #define __LTRACKERFITTINGTOLLS__ 1
 
-#include "TCanvas.h"
-#include "TH2.h"
-#include "TH1.h"
 #include "TProfile.h"
 #include "TF1.h"
-#include <string>
-#include "string.h"
 
 float GetMean( int * channel, float inf, float sup);
 float GetSigma(int * channel, float * noise, float mean, float inf, float sup);

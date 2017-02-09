@@ -2,7 +2,6 @@
 #define __LTRACKERCALIBRATIONSLOT__ 1
 
 #include "LTrackerMask.hh"
-#include "detector_const.hh"
 #include <fstream>
 
 class LTrackerCalibrationSlot {
