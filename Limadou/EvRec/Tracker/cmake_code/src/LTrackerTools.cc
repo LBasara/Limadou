@@ -2,11 +2,14 @@
 #include "LTrackerMask.hh"
 #include <algorithm>
 #include <iostream>
+#include <vector>
+#include <math.h>
+
 
 int ChanToLadder(const int nStrip) {
   if(nStrip<0 || nStrip>=NCHAN)
     return -1;
-  else 
+  else
     return nStrip/LADDER_CHAN;
 }
 
@@ -61,7 +64,7 @@ int ChanToSideChan(const int Chan) {
 
 
 std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma, const bool *maskIn=0) {
-  
+
   auto result= new std::vector<LTrackerCluster>;
   double sn[NCHAN];
   for(int ich=0; ich<NCHAN; ++ich) sn[ich]=cont[ich]/sigma[ich];
@@ -72,12 +75,12 @@ std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigm
   else for(int ich=0; ich<NCHAN; ++ich) mask[ich]=maskIn[ich];
   // Apply the mask
   for(int ich=0; ich<NCHAN; ++ich) sn[ich]*=(static_cast<double>(mask[ich]));
-  
+
   // Main loop
   for(int ich=0; ich<NCHAN; ++ich) {
     //for(int ich=NCHAN-1; ich>-1; --ich) {
     if(sn[ich]<CLFINDTHRESHOLD) continue;
- 
+
     int maxindex1=ich;
     double max1 = sn[ich];
     // Check if there's a higher maximum  - up to two chans ahead
@@ -138,7 +141,7 @@ void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask,
     sumVA[iVA]=0.;
     countVA[iVA]=0;
   }
-    
+
   for(int iChan=0; iChan<NCHAN; ++iChan) {
     if(CN_mask[iChan]==false) continue;
     int iVA=ChanToVA(iChan);
