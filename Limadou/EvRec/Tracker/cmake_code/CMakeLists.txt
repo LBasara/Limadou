@@ -15,6 +15,7 @@ find_package( ROOT REQUIRED COMPONENTS RIO Net Tree Hist )
 include(${ROOT_USE_FILE})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../CommonTools/include)
 #ROOT_GENERATE_DICTIONARY(G__Event Event.h LINKDEF EventLinkDef.h)
 #to take into account also the objects inside the src folder
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
