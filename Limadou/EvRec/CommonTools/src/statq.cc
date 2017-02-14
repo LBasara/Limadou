@@ -24,6 +24,6 @@ void statq::ComputeVars()
     std::for_each (std::begin (vraw), std::end (vraw), [&] (const double d) {
         sq_sum += (d - mean) * (d - mean);
     });
-    stdev = sqrt (sq_sum / (vsize - 1) );
+    stdev = sqrt (sq_sum / vsize );
 }
 

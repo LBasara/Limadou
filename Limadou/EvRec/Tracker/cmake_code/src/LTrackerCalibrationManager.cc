@@ -204,6 +204,26 @@ void LTrackerCalibrationManager::RawMeanSigma(const int StartEntry, const int St
 }
 
 
+std::vector<statq> LTrackerCalibrationManager::RawMeanSigma(const int StartEntry, const int StopEntry) {
+
+    std::vector<statq> rawstat;
+
+    LEvRec0 cev;
+    calRunFile->SetTheEventPointer(cev);
+    std::vector<std::vector<float>> matchan (NCHAN);
+    for(int iEntry=StartEntry; iEntry<StopEntry; iEntry++) {
+      calRunFile->GetEntry(iEntry);
+      for(int iChan=0; iChan<NCHAN; ++iChan) {
+      matchan[iChan].push_back(static_cast<float>(cev.strip[iChan]));
+      }
+    }
+
+  for (auto v : matchan)
+    rawstat.push_back(statq(v));
+  return rawstat;
+}
+
+
 
 void LTrackerCalibrationManager::CleanedMeanSigma(const int StartEntry, const int StopEntry, const double *mean0, const double *sigma0, double *mean1, double *sigma1) {
 

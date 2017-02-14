@@ -3,6 +3,7 @@
 
 #include "LTrackerCalibration.hh"
 #include "LEvRec0File.hh"
+#include "statq.hh"
 
 const double CHANCLEANINGTHRESHOLD=3.;
 const double MINSIGMA1=0.;
@@ -33,6 +34,7 @@ private:
   std::vector<int>  CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries);
   LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
   void RawMeanSigma(const int StartEntry, const int StopEntry, double *mean0, double *sigma0);
+  std::vector<statq> RawMeanSigma(const int StartEntry, const int StopEntry);
   void CleanedMeanSigma(const int StartEntry, const int StopEntry, const double *mean0, const double *sigma0, double *mean1, double *sigma1);
   void ComputeCNMask(const double *sigma1, bool *CN_mask);
   void CNCorrectedSigma(const int StartEntry, const int StopEntry, const double *mean1, const double *sigma1, const bool *CN_mask, double *mean2, double *sigma2);
