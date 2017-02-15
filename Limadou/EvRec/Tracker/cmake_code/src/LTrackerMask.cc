@@ -9,6 +9,10 @@ LTrackerMask::LTrackerMask(const bool *mIN) {
   for(int iChan=0; iChan<NCHAN; ++iChan) m[iChan]=mIN[iChan];
 }
 
+LTrackerMask::LTrackerMask(std::vector<bool> mIN) {
+  for(int iChan=0; iChan<NCHAN; ++iChan) m[iChan]=mIN[iChan];
+}
+
 bool* LTrackerMask::GetBool(void) {
   bool *result = new bool[NCHAN];
   for(int iChan=0; iChan<NCHAN; ++iChan) result[iChan]=m[iChan];
@@ -28,7 +32,7 @@ LTrackerMask operator&&(const LTrackerMask& m1, const LTrackerMask& m2) {
 }
 
 
-LTrackerMask operator||(const LTrackerMask& m1, const LTrackerMask& m2) { 
+LTrackerMask operator||(const LTrackerMask& m1, const LTrackerMask& m2) {
   bool mresult[NCHAN];
   for(int iChan=0; iChan<NCHAN; ++iChan) mresult[iChan] = m1.Get(iChan)||m2.Get(iChan);
   LTrackerMask result(mresult);
@@ -40,7 +44,7 @@ LTrackerMask operator!(const LTrackerMask& m1) {
   for(int iChan=0; iChan<NCHAN; ++iChan) mresult[iChan] = !m1.Get(iChan);
   LTrackerMask result(mresult);
   return result;
-} 
+}
 
 
 void LTrackerMask::Dump() {

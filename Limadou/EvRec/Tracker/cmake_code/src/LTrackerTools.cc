@@ -160,14 +160,14 @@ void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask,
 
 
 
-std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const std::vector<bool> CN_mask) {
+std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, LTrackerMask CN_mask) {
   std::vector<double> CN(N_VA);
 
 
   std::vector<std::vector<float>> vVA(N_VA);
 
   for(int iChan=0; iChan<NCHAN; ++iChan) {
-    if(CN_mask[iChan]==false) continue;
+    if(CN_mask.Get(iChan)==false) continue;
     int iVA=ChanToVA(iChan);
     vVA[iVA].push_back(static_cast<float>(counts[iChan])-pedestal[iChan].GetMean());
   }

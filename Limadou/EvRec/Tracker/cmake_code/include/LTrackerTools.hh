@@ -4,6 +4,7 @@
 #include <vector>
 #include "statq.hh"
 #include "LTrackerCluster.hh"
+#include "LTrackerMask.hh"
 
 int ChanToLadder(const int nStrip);
 int ChanToADC(const int nStrip);
@@ -19,7 +20,7 @@ int ChanToSideChan(const int Chan); // channel inside the side
 std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma, const bool *mask);
 inline std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma){return GetClusters(cont, sigma, 0);};
 void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN);
-std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const std::vector<bool> CN_mask);
+std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const LTrackerMask CN_mask);
 
 
 template<class T> T* Symmetrise(const int inpsize, const T* inp) {

@@ -89,7 +89,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
     // First cleaning
     std::vector<statq> statclean = CleanedMeanSigma (statraw);
     // Compute CN mask
-    std::vector<bool> CN_mask = ComputeCNMask (statclean);
+    LTrackerMask CN_mask = ComputeCNMask (statclean);
     // CNCorrectedSigma
     std::vector<statq> statCNcorr =CNCorrectedSigma (statclean, CN_mask);
     // Gaussianity
@@ -121,7 +121,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
 
 
 
-std::vector<bool> LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> cleanstat)
+LTrackerMask LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> cleanstat)
 {
 
 
@@ -162,7 +162,9 @@ std::vector<bool> LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> 
     if (verboseFLAG) {
         std::cout << "CNmask computed" << std::endl;
     }
-    return CN_mask;
+
+    LTrackerMask TMask(CN_mask);
+    return TMask;
 }
 
 
@@ -220,7 +222,7 @@ std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (std::vector<sta
 
 
 
-std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> statclean, const std::vector<bool> CN_mask)
+std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> statclean, const LTrackerMask CN_mask)
 {
 
   std::vector<statq> statCNcorr;
@@ -257,7 +259,7 @@ std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<st
 
 
 
-std::vector<double> LTrackerCalibrationManager::GaussianityIndex (std::vector<statq> statCNcorr, const std::vector<bool> CN_mask)
+std::vector<double> LTrackerCalibrationManager::GaussianityIndex (std::vector<statq> statCNcorr, const LTrackerMask CN_mask)
 {
 
   std::vector<double> ngindex(NCHAN);
