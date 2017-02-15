@@ -23,6 +23,7 @@ class statq
       float GetMean  (){return mean;}
       float GetSqSum (){return sq_sum;}
       float GetStdDev(){return stdev;}
+      float GetSize() {return vsize;}
 
 
    private:

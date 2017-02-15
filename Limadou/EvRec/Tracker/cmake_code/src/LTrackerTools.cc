@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include "statq.hh"
 
 
 int ChanToLadder(const int nStrip) {
@@ -157,4 +158,32 @@ void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask,
   return;
 }
 
+
+
+std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const bool* CN_mask) {
+  std::vector<double> CN(N_VA);
+
+  double sumVA[N_VA]={0};
+  int countVA[N_VA]={0};
+
+  std::vector<std::vector<float>> vVA(N_VA);
+
+  for(int iChan=0; iChan<NCHAN; ++iChan) {
+    if(CN_mask[iChan]==false) continue;
+    int iVA=ChanToVA(iChan);
+    vVA[iVA].push_back(static_cast<float>(counts[iChan])-pedestal[iChan].GetMean());
+  }
+
+  for(int iVA=0; iVA<N_VA; ++iVA) {
+    if (vVA.size()==0)
+      std::cout << "Warning! ComputeCN dividing by zero!" << std::endl;
+    else
+    {
+      statq sVA(vVA[iVA]);
+      CN[iVA]=sVA.GetMean();
+    }
+  }
+
+  return CN;
+}
 

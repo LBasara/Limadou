@@ -2,6 +2,7 @@
 #define __LTRACKERTOOLS__ 1
 
 #include <vector>
+#include "statq.hh"
 #include "LTrackerCluster.hh"
 
 int ChanToLadder(const int nStrip);
@@ -18,6 +19,7 @@ int ChanToSideChan(const int Chan); // channel inside the side
 std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma, const bool *mask);
 inline std::vector<LTrackerCluster>* GetClusters(const double* cont, const double *sigma){return GetClusters(cont, sigma, 0);};
 void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask, double *CN);
+std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const bool* CN_mask);
 
 
 template<class T> T* Symmetrise(const int inpsize, const T* inp) {
@@ -28,11 +30,11 @@ template<class T> T* Symmetrise(const int inpsize, const T* inp) {
     result[i]=(inp[i]+inp[inpsize-1-i])*0.5;
     result[inpsize-1-i]=result[i];
   }
-  
+
   if(inpsize%2) result[CENTER] = inp[CENTER]; // odd case
-  
+
   return result;
-} 
+}
 
 
 

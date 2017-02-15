@@ -33,12 +33,11 @@ private:
   // CalibrationSlots
   std::vector<int>  CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries);
   LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
-  void RawMeanSigma(const int StartEntry, const int StopEntry, double *mean0, double *sigma0);
   std::vector<statq> RawMeanSigma(const int StartEntry, const int StopEntry);
-  void CleanedMeanSigma(const int StartEntry, const int StopEntry, const double *mean0, const double *sigma0, double *mean1, double *sigma1);
-  void ComputeCNMask(const double *sigma1, bool *CN_mask);
-  void CNCorrectedSigma(const int StartEntry, const int StopEntry, const double *mean1, const double *sigma1, const bool *CN_mask, double *mean2, double *sigma2);
-  void GaussianityIndex(const int StartEntry, const int StopEntry, const double *mean2, const double *sigma2, const bool *CN_mask, double *ngindex);
+  std::vector<statq> CleanedMeanSigma(const int StartEntry, const int StopEntry, std::vector<statq> rawstat);
+  bool*  ComputeCNMask(std::vector<statq> cleanstat);
+  std::vector<statq> CNCorrectedSigma(const int StartEntry, const int StopEntry,  std::vector<statq> statclean, const bool* CN_mask);
+  std::vector<double> GaussianityIndex (const int StartEntry, const int StopEntry, std::vector<statq> statCNcorr, const bool* CN_mask);
 
   LTrackerCalibration* CreateTrackerCalibration();
 

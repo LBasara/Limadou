@@ -26,7 +26,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationSlot::Read(std::ifstream *input) {
   *input >> word >> StartEventST >>  StopEventST;
   for(int iChan=0; iChan<NCHAN; ++iChan)
     *input >> pedestalST[iChan] >>  sigmaST[iChan] >> ngindexST[iChan] >> cnmST[iChan];
-  
+
   LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot(StartEventST, StopEventST, pedestalST, sigmaST, ngindexST, cnmST);
   return result;
 }
