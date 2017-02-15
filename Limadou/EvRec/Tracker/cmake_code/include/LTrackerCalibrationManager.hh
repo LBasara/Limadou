@@ -33,17 +33,20 @@ private:
   // CalibrationSlots
   std::vector<int>  CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries);
   LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
-  std::vector<statq> RawMeanSigma(const int StartEntry, const int StopEntry);
-  std::vector<statq> CleanedMeanSigma(const int StartEntry, const int StopEntry, std::vector<statq> rawstat);
+  std::vector<statq> RawMeanSigma();
+  std::vector<statq> CleanedMeanSigma(std::vector<statq> rawstat);
   bool*  ComputeCNMask(std::vector<statq> cleanstat);
-  std::vector<statq> CNCorrectedSigma(const int StartEntry, const int StopEntry,  std::vector<statq> statclean, const bool* CN_mask);
-  std::vector<double> GaussianityIndex (const int StartEntry, const int StopEntry, std::vector<statq> statCNcorr, const bool* CN_mask);
+  std::vector<statq> CNCorrectedSigma(std::vector<statq> statclean, const bool* CN_mask);
+  std::vector<double> GaussianityIndex (std::vector<statq> statCNcorr, const bool* CN_mask);
 
   LTrackerCalibration* CreateTrackerCalibration();
 
   ~LTrackerCalibrationManager();
 
   bool verboseFLAG;
+
+  int StartEntry;
+  int StopEntry;
 
   /*
   // C++ 03

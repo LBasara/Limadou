@@ -75,23 +75,25 @@ std::vector<int> LTrackerCalibrationManager::CalculateCalibrationSlots (const in
     return pivot;
 }
 
-LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int StartEntry, const int StopEntry)
+LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int startEntry, const int stopEntry)
 {
     if (calRunFile == 0 || ! (calRunFile->IsOpen() ) ) {
         std::cerr << "Error! Attempt to call the \"CalibrateSlot\" method, but no calibration run loaded."
                   << std::endl;
         return 0;
     }
+    this->StartEntry=startEntry;
+    this->StopEntry =stopEntry;
     // RawMeanSigma
-    std::vector<statq> statraw = RawMeanSigma (StartEntry, StopEntry);
+    std::vector<statq> statraw = RawMeanSigma ();
     // First cleaning
-    std::vector<statq> statclean = CleanedMeanSigma (StartEntry, StopEntry, statraw);
+    std::vector<statq> statclean = CleanedMeanSigma (statraw);
     // Compute CN mask
     bool* CN_mask = ComputeCNMask (statclean);
     // CNCorrectedSigma
-    std::vector<statq> statCNcorr =CNCorrectedSigma (StartEntry, StopEntry, statclean, CN_mask);
+    std::vector<statq> statCNcorr =CNCorrectedSigma (statclean, CN_mask);
     // Gaussianity
-    std::vector<double> ngindex=GaussianityIndex (StartEntry, StopEntry, statCNcorr, CN_mask);
+    std::vector<double> ngindex=GaussianityIndex (statCNcorr, CN_mask);
     // Start and stop events
     LEvRec0 cev;
     calRunFile->SetTheEventPointer (cev);
@@ -165,7 +167,7 @@ bool* LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> cleanstat)
 
 
 
-std::vector<statq> LTrackerCalibrationManager::RawMeanSigma (const int StartEntry, const int StopEntry)
+std::vector<statq> LTrackerCalibrationManager::RawMeanSigma ()
 {
     std::vector<statq> rawstat;
     LEvRec0 cev;
@@ -189,7 +191,7 @@ std::vector<statq> LTrackerCalibrationManager::RawMeanSigma (const int StartEntr
 
 
 
-std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (const int StartEntry, const int StopEntry, std::vector<statq> rawstat)
+std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (std::vector<statq> rawstat)
 {
     std::vector<statq> cleanstat;
     LEvRec0 cev;
@@ -216,7 +218,7 @@ std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (const int Start
 
 
 
-std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (const int StartEntry, const int StopEntry, std::vector<statq> statclean, const bool* CN_mask)
+std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> statclean, const bool* CN_mask)
 {
 
   std::vector<statq> statCNcorr;
@@ -255,7 +257,7 @@ std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (const int Star
 
 
 
-std::vector<double> LTrackerCalibrationManager::GaussianityIndex (const int StartEntry, const int StopEntry, std::vector<statq> statCNcorr, const bool* CN_mask)
+std::vector<double> LTrackerCalibrationManager::GaussianityIndex (std::vector<statq> statCNcorr, const bool* CN_mask)
 {
 
   std::vector<double> ngindex(NCHAN);
