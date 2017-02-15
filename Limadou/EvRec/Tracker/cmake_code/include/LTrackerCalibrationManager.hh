@@ -35,9 +35,9 @@ private:
   LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
   std::vector<statq> RawMeanSigma();
   std::vector<statq> CleanedMeanSigma(std::vector<statq> rawstat);
-  bool*  ComputeCNMask(std::vector<statq> cleanstat);
-  std::vector<statq> CNCorrectedSigma(std::vector<statq> statclean, const bool* CN_mask);
-  std::vector<double> GaussianityIndex (std::vector<statq> statCNcorr, const bool* CN_mask);
+  std::vector<bool>  ComputeCNMask(std::vector<statq> cleanstat);
+  std::vector<statq> CNCorrectedSigma(std::vector<statq> statclean, std::vector<bool> CN_mask);
+  std::vector<double> GaussianityIndex (std::vector<statq> statCNcorr, std::vector<bool> CN_mask);
 
   LTrackerCalibration* CreateTrackerCalibration();
 

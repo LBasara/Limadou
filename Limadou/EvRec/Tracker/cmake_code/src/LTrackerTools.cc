@@ -160,11 +160,9 @@ void ComputeCN(const short *counts, const double *pedestal, const bool *CN_mask,
 
 
 
-std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const bool* CN_mask) {
+std::vector<double> ComputeCN(const short *counts, std::vector<statq> pedestal, const std::vector<bool> CN_mask) {
   std::vector<double> CN(N_VA);
 
-  double sumVA[N_VA]={0};
-  int countVA[N_VA]={0};
 
   std::vector<std::vector<float>> vVA(N_VA);
 

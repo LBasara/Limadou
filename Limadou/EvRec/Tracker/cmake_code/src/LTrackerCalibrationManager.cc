@@ -89,7 +89,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
     // First cleaning
     std::vector<statq> statclean = CleanedMeanSigma (statraw);
     // Compute CN mask
-    bool* CN_mask = ComputeCNMask (statclean);
+    std::vector<bool> CN_mask = ComputeCNMask (statclean);
     // CNCorrectedSigma
     std::vector<statq> statCNcorr =CNCorrectedSigma (statclean, CN_mask);
     // Gaussianity
@@ -111,19 +111,21 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
       sig[i]=statCNcorr[i].GetStdDev();
     }
 
-    double* ngi=&ngindex[0];
-    LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot (StartEvent, StopEvent, ped, sig, ngi, CN_mask);
+    bool cnm[NCHAN];
+    for (int ichan=0; ichan<NCHAN; ichan++) cnm[ichan]=CN_mask[ichan]; // vector<bool> does not have c_array functionality :(
+    LTrackerCalibrationSlot *result = new LTrackerCalibrationSlot
+      (StartEvent, StopEvent, ped, sig, &ngindex[0], cnm);
     return result;
 }
 
 
 
 
-bool* LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> cleanstat)
+std::vector<bool> LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> cleanstat)
 {
 
 
-    bool* CN_mask;
+    std::vector<bool> CN_mask (NCHAN);
     // Create "histograms" of sigmas per VA and set them to zero
     int hSigma1[N_VA][NSIGMA1BIN + 1]={{0}}; // overflow
 
@@ -218,16 +220,14 @@ std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (std::vector<sta
 
 
 
-std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> statclean, const bool* CN_mask)
+std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> statclean, const std::vector<bool> CN_mask)
 {
 
   std::vector<statq> statCNcorr;
 
     LEvRec0 cev;
     calRunFile->SetTheEventPointer (cev);
-    // Set up arrays - CN corrected sigma
-    double sumsq2[NCHAN]={0};
-    int counter2[NCHAN]={0};
+
 
     // Average counts and squares
 
@@ -257,7 +257,7 @@ std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<st
 
 
 
-std::vector<double> LTrackerCalibrationManager::GaussianityIndex (std::vector<statq> statCNcorr, const bool* CN_mask)
+std::vector<double> LTrackerCalibrationManager::GaussianityIndex (std::vector<statq> statCNcorr, const std::vector<bool> CN_mask)
 {
 
   std::vector<double> ngindex(NCHAN);
