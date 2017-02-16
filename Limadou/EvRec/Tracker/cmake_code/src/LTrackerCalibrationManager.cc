@@ -1,6 +1,6 @@
 #include "LTrackerCalibrationManager.hh"
 #include "LTrackerTools.hh"
-#include "LTrackerSlotCalibrator.hh"
+
 
 
 #include <iostream>
@@ -83,18 +83,14 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
                   << std::endl;
         return 0;
     }
-    this->StartEntry=startEntry;
-    this->StopEntry =stopEntry;
-    // RawMeanSigma
-    std::vector<statq> statraw = RawMeanSigma ();
-    // First cleaning
-    std::vector<statq> statclean = CleanedMeanSigma (statraw);
-    // Compute CN mask
-    LTrackerMask CN_mask = ComputeCNMask (statclean);
-    // CNCorrectedSigma
-    std::vector<statq> statCNcorr =CNCorrectedSigma (statclean, CN_mask);
-    // Gaussianity
-    std::vector<double> ngindex=GaussianityIndex (statCNcorr, CN_mask);
+    LTrackerSlotCalibrator slotcal(calRunFile);
+    slotcal.SetEntries(startEntry, stopEntry);
+    std::vector<statq> statraw   = slotcal.RawMeanSigma();
+    std::vector<statq> statclean = slotcal.CleanedMeanSigma ();
+    LTrackerMask CN_mask         = slotcal.ComputeCNMask ();
+    std::vector<statq> statCNcorr= slotcal.CNCorrectedSigma ();
+    std::vector<double> ngindex  = slotcal.GaussianityIndex ();
+
     // Start and stop events
     LEvRec0 cev;
     calRunFile->SetTheEventPointer (cev);
@@ -122,175 +118,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
 
 
 
-LTrackerMask LTrackerCalibrationManager::ComputeCNMask (std::vector<statq> cleanstat)
-{
 
-
-    std::vector<bool> CN_mask (NCHAN);
-    // Create "histograms" of sigmas per VA and set them to zero
-    int hSigma1[N_VA][NSIGMA1BIN + 1]={{0}}; // overflow
-
-    double xBin[NSIGMA1BIN + 1];
-    for (int iBin = 0; iBin < NSIGMA1BIN + 1; ++iBin)
-      xBin[iBin] = MINSIGMA1 + (MAXSIGMA1 - MINSIGMA1) * iBin / static_cast<double> (NSIGMA1BIN);
-    // Fill histograms
-    for (int iChan = 0; iChan < NCHAN; ++iChan) {
-        int iVA = ChanToVA (iChan);
-        for (int iBin = NSIGMA1BIN; iBin > -1; --iBin) {
-            if (cleanstat[iChan].GetStdDev() > xBin[iBin]) {
-                ++hSigma1[iVA][iBin];
-                break;
-            }
-        }
-    }
-    // Find histos' maxima
-    double hMaxima[N_VA];
-    for (int iVA = 0; iVA < N_VA; ++iVA) {
-        int tmpMax = -99999;
-        hMaxima[iVA] = -99999.;
-        for (int iBin = 0; iBin < NSIGMA1BIN; ++iBin) {
-            if (hSigma1[iVA][iBin] > tmpMax) {
-                hMaxima[iVA] = xBin[iBin] + 0.5 * (MAXSIGMA1 - MINSIGMA1) / NSIGMA1BIN;
-                tmpMax = hSigma1[iVA][iBin];
-            }
-        }
-    }
-    // Compute CN mask
-    for (int iChan = 0; iChan < NCHAN; ++iChan) {
-        int iVA = ChanToVA (iChan);
-        CN_mask[iChan] = std::fabs (cleanstat[iChan].GetStdDev() - hMaxima[iVA]) <= HALFSIGMA1WIDTH;
-    }
-    if (verboseFLAG) {
-        std::cout << "CNmask computed" << std::endl;
-    }
-
-    LTrackerMask TMask(CN_mask);
-    return TMask;
-}
-
-
-
-
-
-std::vector<statq> LTrackerCalibrationManager::RawMeanSigma ()
-{
-    std::vector<statq> rawstat;
-    LEvRec0 cev;
-    calRunFile->SetTheEventPointer (cev);
-    std::vector<std::vector<float>> matchan (NCHAN);
-    for (int iEntry = StartEntry; iEntry < StopEntry; iEntry++) {
-        calRunFile->GetEntry (iEntry);
-        for (int iChan = 0; iChan < NCHAN; ++iChan) {
-            float x = static_cast<float> (cev.strip[iChan]);
-                  matchan[iChan].push_back(x);
-        }
-    }
-    for (auto v : matchan)
-        rawstat.push_back (statq (v) );
-    if (verboseFLAG) std::cout << "RawMeanSigma computed" << std::endl;
-    return rawstat;
-}
-
-
-
-
-
-
-std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (std::vector<statq> rawstat)
-{
-    std::vector<statq> cleanstat;
-    LEvRec0 cev;
-    calRunFile->SetTheEventPointer (cev);
-    // Average counts and squares
-    std::vector<std::vector<float>> matchan (NCHAN);
-    for (int iEntry = StartEntry; iEntry < StopEntry; ++iEntry) {
-        calRunFile->GetEntry (iEntry);
-        for (int iChan = 0; iChan < NCHAN; ++iChan) {
-            float x = static_cast<float> (cev.strip[iChan]);
-            float absdiff = std::fabs (x - rawstat[iChan].GetMean() );
-            float cleanthres = CHANCLEANINGTHRESHOLD * rawstat[iChan].GetStdDev();
-            if ( absdiff > cleanthres) continue;
-            matchan[iChan].push_back (x);
-        }
-    }
-    for (auto v : matchan) cleanstat.push_back (statq (v) );
-    if (verboseFLAG) std::cout << "CleanedMeanSigma computed" << std::endl;
-    return cleanstat;
-}
-
-
-
-
-
-
-std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> cleanstat, const LTrackerMask CN_mask)
-{
-
-  std::vector<statq> statCNcorr;
-
-    LEvRec0 cev;
-    calRunFile->SetTheEventPointer (cev);
-
-
-    // Average counts and squares
-
-    std::vector<std::vector<float>> matchan (NCHAN);
-
-    for (int iEntry = StartEntry; iEntry < StopEntry; ++iEntry) {
-        calRunFile->GetEntry (iEntry);
-        std::vector<double> CN=ComputeCN (cev.strip, cleanstat, CN_mask);
-        for (int iChan = 0; iChan < NCHAN; ++iChan) {
-            double x = static_cast<double> (cev.strip[iChan]);
-            double diff = (x - cleanstat[iChan].GetMean());
-            if (std::fabs (diff) > CHANCLEANINGTHRESHOLD * cleanstat[iChan].GetStdDev()) continue;
-            double y = (x - CN[ChanToVA (iChan)]); // CN corrected!
-            matchan[iChan].push_back (y);
-        }
-    }
-
-    for (auto v : matchan)
-        statCNcorr.push_back (statq (v) );
-
-    if (verboseFLAG) std::cout << "CNCorrectedSigma computed" << std::endl;
-    return statCNcorr;
-}
-
-
-
-
-
-
-std::vector<double> LTrackerCalibrationManager::GaussianityIndex (std::vector<statq> statCNcorr, const LTrackerMask CN_mask)
-{
-
-  std::vector<double> ngindex(NCHAN);
-
-    LEvRec0 cev;
-    calRunFile->SetTheEventPointer (cev);
-    // Gaussianity index
-    int ngcounter[NCHAN];
-    for (int iChan = 0; iChan < NCHAN; ++iChan) {
-        ngindex[iChan] = 0.;
-        ngcounter[iChan] = 0;
-    }
-    for (int iEntry = StartEntry; iEntry < StopEntry; ++iEntry) {
-        calRunFile->GetEntry (iEntry);
-        std::vector<double> CN=ComputeCN (cev.strip, statCNcorr, CN_mask);
-        for (int iChan = 0; iChan < NCHAN; ++iChan) {
-            double x = (static_cast<double> (cev.strip[iChan]) - statCNcorr[iChan].GetMean() - CN[ChanToVA (iChan)]);
-            if (std::fabs (x) > GAUSSIANITYSIGMATHRESHOLD * statCNcorr[iChan].GetStdDev()) ++ngindex[iChan];
-            ++ngcounter[iChan];
-        }
-    }
-    for (int iChan = 0; iChan < NCHAN; ++iChan) {
-        double outliers_expected = GAUSSIANITYEVRACTHRESHOLD * ngcounter[iChan];
-        double delta = ngindex[iChan] - outliers_expected;
-        double significance = sqrt (outliers_expected + ngindex[iChan] - 2 * GAUSSIANITYEVRACTHRESHOLD * ngindex[iChan]);
-        ngindex[iChan] = (delta / significance);
-    }
-    if (verboseFLAG) std::cout << "GaussianityIndex computed" << std::endl;
-    return ngindex;
-}
 
 
 LTrackerCalibrationManager::~LTrackerCalibrationManager()

@@ -4,15 +4,13 @@
 #include "LTrackerCalibration.hh"
 #include "LEvRec0File.hh"
 #include "statq.hh"
+#include "LTrackerSlotCalibrator.hh"
 
-const double CHANCLEANINGTHRESHOLD=3.;
-const double MINSIGMA1=0.;
-const double MAXSIGMA1=50.;
-const int NSIGMA1BIN=100;
-const double HALFSIGMA1WIDTH=1.5; // ADCs
 
-const double GAUSSIANITYSIGMATHRESHOLD=3.0;
-const double GAUSSIANITYEVRACTHRESHOLD=0.003;
+
+
+
+
 
 
 class LTrackerCalibrationManager {
@@ -33,11 +31,8 @@ private:
   // CalibrationSlots
   std::vector<int>  CalculateCalibrationSlots(const int nEvents, const int skipEvents, const int nEntries);
   LTrackerCalibrationSlot* CalibrateSlot(int StartEntry, const int StopEntry);
-  std::vector<statq> RawMeanSigma();
-  std::vector<statq> CleanedMeanSigma(std::vector<statq> rawstat);
-  LTrackerMask  ComputeCNMask(std::vector<statq> cleanstat);
-  std::vector<statq> CNCorrectedSigma(std::vector<statq> cleanstat, LTrackerMask CN_mask);
-  std::vector<double> GaussianityIndex (std::vector<statq> statCNcorr, LTrackerMask CN_mask);
+
+
 
   LTrackerCalibration* CreateTrackerCalibration();
 

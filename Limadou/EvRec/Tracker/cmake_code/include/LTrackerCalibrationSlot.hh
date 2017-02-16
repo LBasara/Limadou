@@ -4,6 +4,7 @@
 #include "LTrackerMask.hh"
 #include <fstream>
 
+
 class LTrackerCalibrationSlot {
 public:
   LTrackerCalibrationSlot(int StartE, int StopE, double *ped, double *sig, double *ngi, bool *cnm);

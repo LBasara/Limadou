@@ -8,7 +8,7 @@ class LEvRec0 {
 
 public:
   LEvRec0();
-  
+
   short strip[NCHAN];
   unsigned int trigger_index;
   unsigned int hepd_time;
