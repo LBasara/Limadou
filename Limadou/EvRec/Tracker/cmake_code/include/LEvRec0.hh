@@ -9,17 +9,17 @@ class LEvRec0 {
 public:
   LEvRec0();
 
-  short strip[NCHAN];
-  unsigned int trigger_index;
-  unsigned int hepd_time;
-  unsigned int event_index;
-  unsigned short event_length;
-  unsigned short pmt_high[NPMT];
-  unsigned short pmt_low[NPMT];
-  unsigned short rate_meter[NRATEMETER];
-  bool trigger_flag[NPMT];
-  unsigned int alive_time;
-  unsigned int dead_time;
+  short strip[NCHAN]={0};
+  unsigned int trigger_index=0;
+  unsigned int hepd_time=0;
+  unsigned int event_index=0;
+  unsigned short event_length=0;
+  unsigned short pmt_high[NPMT]={0};
+  unsigned short pmt_low[NPMT]={0};
+  unsigned short rate_meter[NRATEMETER]={0};
+  bool trigger_flag[NPMT]={0};
+  unsigned int alive_time=0;
+  unsigned int dead_time=0;
 
   void DumpStrip(void);
   void DumpEventIndex();
