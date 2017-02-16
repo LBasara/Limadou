@@ -21,12 +21,12 @@ public:
 
 private:
   // Calib infos
-  int StartEvent;
-  int StopEvent;
-  double pedestal[NCHAN];
-  double sigma[NCHAN];
-  double ngindex[NCHAN];
-  bool CN_mask[NCHAN];
+  int StartEvent=0;
+  int StopEvent=0;
+  double pedestal[NCHAN]={0};
+  double sigma[NCHAN]={0};
+  double ngindex[NCHAN]={0};
+  bool CN_mask[NCHAN]={0};
 };
 
 

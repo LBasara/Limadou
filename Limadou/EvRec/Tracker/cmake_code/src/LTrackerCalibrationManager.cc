@@ -76,7 +76,7 @@ std::vector<int> LTrackerCalibrationManager::CalculateCalibrationSlots (const in
     return pivot;
 }
 
-LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int startEntry, const int stopEntry)
+LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int StartEntry, const int StopEntry)
 {
     if (calRunFile == 0 || ! (calRunFile->IsOpen() ) ) {
         std::cerr << "Error! Attempt to call the \"CalibrateSlot\" method, but no calibration run loaded."
@@ -84,7 +84,7 @@ LTrackerCalibrationSlot* LTrackerCalibrationManager::CalibrateSlot (const int st
         return 0;
     }
     LTrackerSlotCalibrator slotcal(calRunFile);
-    slotcal.SetEntries(startEntry, stopEntry);
+    slotcal.SetEntries(StartEntry, StopEntry);
     std::vector<statq> statraw   = slotcal.RawMeanSigma();
     std::vector<statq> statclean = slotcal.CleanedMeanSigma ();
     LTrackerMask CN_mask         = slotcal.ComputeCNMask ();

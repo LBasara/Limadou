@@ -40,8 +40,7 @@ private:
 
   bool verboseFLAG;
 
-  int StartEntry;
-  int StopEntry;
+
 
   /*
   // C++ 03

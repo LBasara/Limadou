@@ -7,7 +7,7 @@
 class LEvRec0 {
 
 public:
-  LEvRec0();
+  LEvRec0() {};
 
   short strip[NCHAN]={0};
   unsigned int trigger_index=0;
