@@ -1,5 +1,6 @@
 #include "LTrackerCalibrationManager.hh"
 #include "LTrackerTools.hh"
+#include "LTrackerSlotCalibrator.hh"
 
 
 #include <iostream>
@@ -222,7 +223,7 @@ std::vector<statq> LTrackerCalibrationManager::CleanedMeanSigma (std::vector<sta
 
 
 
-std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> statclean, const LTrackerMask CN_mask)
+std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<statq> cleanstat, const LTrackerMask CN_mask)
 {
 
   std::vector<statq> statCNcorr;
@@ -237,11 +238,11 @@ std::vector<statq>  LTrackerCalibrationManager::CNCorrectedSigma (std::vector<st
 
     for (int iEntry = StartEntry; iEntry < StopEntry; ++iEntry) {
         calRunFile->GetEntry (iEntry);
-        std::vector<double> CN=ComputeCN (cev.strip, statclean, CN_mask);
+        std::vector<double> CN=ComputeCN (cev.strip, cleanstat, CN_mask);
         for (int iChan = 0; iChan < NCHAN; ++iChan) {
             double x = static_cast<double> (cev.strip[iChan]);
-            double diff = (x - statclean[iChan].GetMean());
-            if (std::fabs (diff) > CHANCLEANINGTHRESHOLD * statclean[iChan].GetStdDev()) continue;
+            double diff = (x - cleanstat[iChan].GetMean());
+            if (std::fabs (diff) > CHANCLEANINGTHRESHOLD * cleanstat[iChan].GetStdDev()) continue;
             double y = (x - CN[ChanToVA (iChan)]); // CN corrected!
             matchan[iChan].push_back (y);
         }
